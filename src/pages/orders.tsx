@@ -1,186 +1,173 @@
-import { useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { subHours, subMinutes } from 'date-fns';
-import { Box, Button, Card, Container, Divider, Stack, Typography } from '@mui/material';
-import { OrdersSearch } from 'src/sections/orders/orders-search';
-import { OrdersTable } from 'src/sections/orders/orders-table';
+import { useState } from 'react';
+import { Box, Card, Stack, Typography, Chip, Grid } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import { DataTable, ColumnConfig } from 'src/components/data-table';
+import { mockCommandes } from 'src/data/mock';
+import { StatutCommande } from 'src/types';
+import { PageContainer } from 'src/components/page-container';
 
-const now = new Date();
-
-interface Customer {
-  name: string;
-}
-
-interface Order {
-  id: string;
-  createdAt: number;
-  currency: string;
-  customer: Customer;
-  status: string;
-  totalAmount: number;
-  updatedAt: number;
-}
-
-const orders: Order[] = [
-  {
-    id: '5273',
-    createdAt: subMinutes(now, 21).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Devon Lane'
-    },
-    status: 'delivered',
-    totalAmount: 192.5,
-    updatedAt: subMinutes(now, 7).getTime()
-  },
-  {
-    id: '9265',
-    createdAt: subMinutes(now, 56).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Livia Louthe'
-    },
-    status: 'complete',
-    totalAmount: 631,
-    updatedAt: subMinutes(now, 54).getTime()
-  },
-  {
-    id: '9266',
-    createdAt: subHours(subMinutes(now, 31), 2).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Peri Ottawell'
-    },
-    status: 'placed',
-    totalAmount: 631,
-    updatedAt: subHours(subMinutes(now, 43), 1).getTime()
-  },
-  {
-    id: '1090',
-    createdAt: subHours(subMinutes(now, 51), 2).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Thadeus Jacketts'
-    },
-    status: 'processed',
-    totalAmount: 100,
-    updatedAt: subHours(subMinutes(now, 13), 2).getTime()
-  },
-  {
-    id: '1111',
-    createdAt: subHours(subMinutes(now, 6), 3).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Rad Jose'
-    },
-    status: 'processed',
-    totalAmount: 60,
-    updatedAt: subHours(subMinutes(now, 54), 2).getTime()
-  },
-  {
-    id: '2475',
-    createdAt: subHours(subMinutes(now, 17), 4).getTime(),
-    currency: '$',
-    customer: {
-      name: 'Eydie Hopkyns'
-    },
-    status: 'complete',
-    totalAmount: 1200,
-    updatedAt: subHours(subMinutes(now, 1), 2).getTime()
-  }
+// Filtres de statut
+const statutFilters: { label: string; value: StatutCommande | 'all' }[] = [
+  { label: 'Toutes', value: 'all' },
+  { label: 'En attente', value: 'en_attente' },
+  { label: 'Payée', value: 'payee' },
+  { label: 'En préparation', value: 'en_preparation' },
+  { label: 'Livrée', value: 'livree' },
+  { label: 'Annulée', value: 'annulee' },
 ];
 
+// Colonnes de configuration
+const columns: ColumnConfig[] = [
+  { 
+    field: 'code_commande', 
+    headerName: 'COMMANDE', 
+    flex: 1, 
+    minWidth: 120,
+  },
+  { 
+    field: 'created_at_commande', 
+    headerName: 'DATE', 
+    flex: 1, 
+    minWidth: 180,
+    valueFormatter: (value) => {
+      if (!value) return '';
+      return new Date(value as string).toLocaleString('fr-FR');
+    }
+  },
+  { 
+    field: 'client_code', 
+    headerName: 'CLIENT', 
+    flex: 1, 
+    minWidth: 120 
+  },
+  { 
+    field: 'total_commande', 
+    headerName: 'TOTAL', 
+    flex: 1, 
+    minWidth: 120,
+    align: 'right',
+    headerAlign: 'right',
+    valueFormatter: (value) => value ? `${Number(value).toLocaleString()} XOF` : '',
+  },
+];
+
+// Page Commandes - Liste SIMPLE (sans bouton ajouter)
 const Page = () => {
-  const [mode, setMode] = useState('table');
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [filter, setFilter] = useState<StatutCommande | 'all'>('all');
 
-  const handleModeChange = useCallback(
-    (event: Event, value: string) => {
-      if (value) {
-        setMode(value);
-      }
-    },
-    []
-  );
+  // Filtrer les commandes
+  const filteredCommandes = filter === 'all' 
+    ? mockCommandes 
+    : mockCommandes.filter(c => c.statut_commande === filter);
 
-  const handleQueryChange = useCallback(
-    (value: string) => {
-      setQuery(value);
-    },
-    []
-  );
-
-  const handleChangePage = useCallback(
-    (event: Event | null, value: number) => {
-      setPage(value);
-    },
-    []
-  );
-
-  const handleChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      setPage(0);
-    },
-    []
-  );
+  const rows = filteredCommandes.map((cmd) => ({
+    ...cmd,
+    statut_commande: cmd.statut_commande
+  }));
 
   return (
     <>
       <Helmet>
-        <title>
-          Orders | Carpatin Free
-        </title>
+        <title>Commandes | Woli Delivery</title>
       </Helmet>
-      <Box
-        sx={{
-          flexGrow: 1,
-          py: 8
-        }}
-      >
-        <Container maxWidth="xl">
-          <Stack spacing={3}>
-            <Stack
-              alignItems="flex-start"
-              direction="row"
-              justifyContent="space-between"
-              spacing={3}
-            >
-              <Typography variant="h4">
-                Orders
+      <PageContainer>
+        <Stack spacing={3}>
+            {/* En-tête */}
+            <Box>
+              <Typography variant="h4" fontWeight={700}>
+                Commandes
               </Typography>
-              <Button
-                color="primary"
-                size="large"
-                variant="contained"
-              >
-                Add
-              </Button>
-            </Stack>
-            <div>
-              <Card>
-                <OrdersSearch
-                  mode={mode}
-                  onModeChange={handleModeChange}
-                  onQueryChange={handleQueryChange}
-                  query={query}
-                />
-                <Divider />
-                <OrdersTable
-                  count={orders.length}
-                  items={orders}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-              </Card>
-            </div>
+              <Typography variant="body2" color="text.secondary">
+                Liste des commandes
+              </Typography>
+            </Box>
+
+            {/* KPI Cards */}
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'primary.light', color: 'primary.main' }}>
+                    <ShoppingCartIcon />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Total</Typography>
+                    <Typography variant="h5" fontWeight={700}>{mockCommandes.length}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'success.light', color: 'success.main' }}>
+                    <CheckCircleIcon />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Livrées</Typography>
+                    <Typography variant="h5" fontWeight={700}>{mockCommandes.filter(c => c.statut_commande === 'livree').length}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'warning.light', color: 'warning.main' }}>
+                    <HourglassEmptyIcon />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">En cours</Typography>
+                    <Typography variant="h5" fontWeight={700}>{mockCommandes.filter(c => ['payee', 'en_preparation'].includes(c.statut_commande)).length}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'info.light', color: 'info.main' }}>
+                    <AttachMoneyIcon />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Revenus</Typography>
+                    <Typography variant="h5" fontWeight={700}>{mockCommandes.filter(c => c.statut_commande !== 'annulee').reduce((sum, c) => sum + c.total_commande, 0).toLocaleString()} XOF</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+
+            {/* Filtres */}
+            <Card sx={{ p: 2 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                {statutFilters.map((statut) => (
+                  <Chip
+                    key={statut.value}
+                    label={statut.label}
+                    onClick={() => setFilter(statut.value)}
+                    color={filter === statut.value ? 'primary' : 'default'}
+                    variant={filter === statut.value ? 'filled' : 'outlined'}
+                  />
+                ))}
+              </Stack>
+            </Card>
+
+            {/* DataTable - Liste simple sans bouton ajouter */}
+            <DataTable
+              rows={rows}
+              columns={columns}
+              pageSize={10}
+              pageSizeOptions={[5, 10, 25, 50]}
+              statusColumn={{
+                field: 'statut_commande',
+                mapping: {
+                  en_attente: 'default',
+                  payee: 'primary',
+                  en_preparation: 'warning',
+                  livree: 'success',
+                  annulee: 'error'
+                }
+              }}
+            />
           </Stack>
-        </Container>
-      </Box>
+        </PageContainer>
     </>
   );
 };

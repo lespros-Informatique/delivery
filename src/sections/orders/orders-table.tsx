@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import numeral from 'numeral';
-import EllipsisVerticalIcon from '@heroicons/react/24/solid/EllipsisVerticalIcon';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Box,
   Divider,
@@ -22,7 +23,7 @@ interface Customer {
   name: string;
 }
 
-interface Order {
+export interface Order {
   id: string;
   createdAt: number;
   currency: string;
@@ -32,12 +33,12 @@ interface Order {
   updatedAt: number;
 }
 
-interface StatusMap {
+export interface StatusMap {
   color: string;
   label: string;
 }
 
-const statusMap: Record<string, StatusMap> = {
+export const statusMap: Record<string, StatusMap> = {
   complete: {
     color: 'success.main',
     label: 'Complete'
@@ -63,21 +64,24 @@ const statusMap: Record<string, StatusMap> = {
 interface OrdersTableProps {
   count?: number;
   items?: Order[];
-  onPageChange?: (event: Event | null, page: number) => void;
+  onPageChange?: (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => void;
   page?: number;
   rowsPerPage?: number;
-  onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 export const OrdersTable = (props: OrdersTableProps) => {
   const {
     count = 0,
     items = [],
-    onPageChange = () => {},
+    onPageChange,
     page = 0,
     rowsPerPage = 0,
     onRowsPerPageChange
   } = props;
+
+  // Memoizer les données pour éviter les re-rendus inutiles
+  const memoizedItems = useMemo(() => items, [items]);
 
   return (
     <div>
@@ -104,7 +108,7 @@ export const OrdersTable = (props: OrdersTableProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((order) => {
+            {memoizedItems.map((order) => {
               const status = statusMap[order.status];
               const createdDate = format(order.createdAt, 'dd MMM yyyy');
               const createdTime = format(order.createdAt, 'HH:mm');
@@ -164,7 +168,7 @@ export const OrdersTable = (props: OrdersTableProps) => {
                   <TableCell align="right">
                     <IconButton>
                       <SvgIcon fontSize="small">
-                        <EllipsisVerticalIcon />
+                        <MoreVertIcon />
                       </SvgIcon>
                     </IconButton>
                   </TableCell>

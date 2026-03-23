@@ -1,13 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import {
-  Box,
-  Card,
-  Container,
-  Link,
-  Stack,
-  Typography,
-  Unstable_Grid2 as Grid
-} from '@mui/material';
+import { Box, Card, Container, Link, Stack, Typography, Grid } from '@mui/material';
 
 const Page = () => (
   <>
@@ -35,8 +27,7 @@ const Page = () => (
               spacing={3}
             >
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <Stack spacing={1}>
                   <Typography variant="h6">
@@ -66,8 +57,7 @@ const Page = () => (
                 </Stack>
               </Grid>
               <Grid
-                xs={12}
-                md={8}
+                size={{ xs: 12, md: 8 }}
               >
                 <Card>
                   <Stack
@@ -86,16 +76,14 @@ const Page = () => (
                 </Card>
               </Grid>
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <Typography variant="h6">
                   Body
                 </Typography>
               </Grid>
               <Grid
-                xs={12}
-                md={8}
+                size={{ xs: 12, md: 8 }}
               >
                 <Card>
                   <Stack

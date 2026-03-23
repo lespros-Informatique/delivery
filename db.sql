@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : dim. 22 mars 2026 à 21:15
+-- Généré le : lun. 23 mars 2026 à 11:07
 -- Version du serveur : 9.1.0
 -- Version de PHP : 8.3.14
 
@@ -296,7 +296,7 @@ DROP TABLE IF EXISTS `livreurs`;
 CREATE TABLE IF NOT EXISTS `livreurs` (
   `id_livreur` int NOT NULL AUTO_INCREMENT,
   `code_livreur` varchar(50) NOT NULL,
-  `restaurant_code` varchar(50) NULL DEFAULT NULL,
+  `restaurant_code` varchar(50) DEFAULT NULL,
   `nom_livreur` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `telephone_livreur` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `statut_livreurs` tinyint DEFAULT '1',
@@ -625,7 +625,7 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
   UNIQUE KEY `role_code` (`role_code`,`permission_code`),
   KEY `role_code_2` (`role_code`),
   KEY `permission_code` (`permission_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `role_permissions`

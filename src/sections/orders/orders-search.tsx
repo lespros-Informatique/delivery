@@ -1,6 +1,4 @@
-import AdjustmentsHorizontalIcon from '@heroicons/react/24/outline/AdjustmentsHorizontalIcon';
-import ListBulletIcon from '@heroicons/react/24/outline/ListBulletIcon';
-import Squares2X2Icon from '@heroicons/react/24/outline/Squares2X2Icon';
+import { Tune, List, LayoutGrid, SlidersHorizontal } from 'lucide-react';
 import {
   Button,
   Stack,
@@ -68,12 +66,12 @@ export const OrdersSearch = (props: OrdersSearchProps) => {
       >
         <ToggleButton value="table">
           <SvgIcon fontSize="small">
-            <ListBulletIcon />
+            <List />
           </SvgIcon>
         </ToggleButton>
         <ToggleButton value="dnd">
           <SvgIcon fontSize="small">
-            <Squares2X2Icon />
+            <LayoutGrid />
           </SvgIcon>
         </ToggleButton>
       </ToggleButtonGroup>
@@ -81,7 +79,7 @@ export const OrdersSearch = (props: OrdersSearchProps) => {
         size="large"
         startIcon={(
           <SvgIcon fontSize="small">
-            <AdjustmentsHorizontalIcon />
+            <SlidersHorizontal />
           </SvgIcon>
         )}
         sx={{ order: 3 }}
