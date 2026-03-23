@@ -1,0 +1,93 @@
+import { useCallback, useEffect, useRef, useState, ChangeEvent, FocusEvent, KeyboardEvent } from 'react';
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import { InputBase, SvgIcon } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const QueryFieldRoot = styled('div')((({ theme }) => ({
+  alignItems: 'center',
+  backgroundColor: 'background.paper',
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+  display: 'flex',
+  height: 42,
+  padding: '0 16px'
+})));
+
+import { SxProps, Theme } from '@mui/material';
+
+interface QueryFieldProps {
+  disabled?: boolean;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  sx?: SxProps<Theme>;
+  value?: string;
+}
+
+export const QueryField = (props: QueryFieldProps) => {
+  const { disabled, onChange, placeholder, value: initialValue = '', ...other } = props;
+  const [autoFocus, setAutoFocus] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+      if (!disabled && autoFocus && inputRef?.current) {
+        inputRef.current.focus();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [disabled]);
+
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  }, []);
+
+  const handleKeyup = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.code === 'Enter') {
+      onChange?.(value);
+    }
+  }, [value, onChange]);
+
+  const handleFocus = useCallback(() => {
+    setAutoFocus(true);
+  }, []);
+
+  const handleBlur = useCallback((event?: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    /*
+     There is a situation where an input goes from not disabled to disabled and DOM emits a blur
+     event, with event as undefined. This means, that sometimes we'll receive an React Synthetic
+     event and sometimes undefined because when DOM triggers the event, React is unaware of it,
+     or it simply does not emit the event. To bypass this behaviour, we store a local variable
+     that acts as autofocus.
+     */
+
+    if (event) {
+      setAutoFocus(false);
+    }
+  }, []);
+
+  return (
+    <QueryFieldRoot {...other}>
+      <SvgIcon
+        fontSize="small"
+        sx={{ mr: 1 }}
+      >
+        <MagnifyingGlassIcon />
+      </SvgIcon>
+      <InputBase
+        disabled={disabled}
+        inputProps={{ ref: inputRef }}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onKeyUp={handleKeyup}
+        placeholder={placeholder}
+        sx={{ flexGrow: 1 }}
+        value={value}
+      />
+    </QueryFieldRoot>
+  );
+};
