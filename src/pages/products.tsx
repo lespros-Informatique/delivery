@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Stack, Typography, Button, Grid, Card, Chip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -6,6 +7,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { ProductForm } from 'src/components/forms/product-form';
 import { mockProduits, mockCategories } from 'src/data/mock';
 
 // Colonnes de configuration
@@ -45,6 +48,8 @@ const columns: ColumnConfig[] = [
 // Page Produits - ADMIN (avec bouton ajouter, modifier, supprimer)
 const Page = () => {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
   const rows = mockProduits.map((p) => ({
     ...p,
@@ -62,10 +67,27 @@ const Page = () => {
     if (action === 'view') {
       navigate(`/products/${row.code_produit}`);
     } else if (action === 'edit') {
-      navigate(`/products/${row.code_produit}`);
+      setSelectedProduct(row);
+      setModalOpen(true);
     } else if (action === 'delete') {
       console.log('Delete', row.code_produit);
     }
+  };
+
+  const handleOpenModal = () => {
+    setSelectedProduct(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleSubmitProduct = (data: any) => {
+    console.log('Nouveau produit:', data);
+    // Ici vous ajoutez la logique pour ajouter le produit
+    handleCloseModal();
   };
 
   return (
@@ -86,7 +108,7 @@ const Page = () => {
                   Gérez vos produits
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter un produit
               </Button>
             </Stack>
@@ -120,6 +142,40 @@ const Page = () => {
               actions={actionOptions}
               onActionClick={handleActionClick}
             />
+
+            {/* Modal d'ajout/modification de produit */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title={selectedProduct ? 'Modifier le produit' : 'Ajouter un produit'}
+              maxWidth="md"
+              size="large"
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    {selectedProduct ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </>
+              }
+            >
+              <ProductForm 
+                initialData={selectedProduct ? {
+                  code_produit: selectedProduct.code_produit,
+                  restaurant_code: selectedProduct.restaurant_code,
+                  categorie_code: selectedProduct.categorie_code,
+                  libelle_produit: selectedProduct.libelle_produit,
+                  description_produit: selectedProduct.description_produit,
+                  prix_produit: selectedProduct.prix_produit,
+                  image_produit: selectedProduct.image_produit,
+                  disponible_produit: selectedProduct.disponible_produit === 'Disponible',
+                  etat_produit: selectedProduct.etat_produit === 'actif'
+                } : undefined}
+                onSubmit={handleSubmitProduct}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

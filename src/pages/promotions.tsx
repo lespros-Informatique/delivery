@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Stack, Typography, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -7,6 +7,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { PromotionForm } from 'src/components/forms/promotion-form';
 import { mockPromotions } from 'src/data/mock';
 
 // Colonnes de configuration
@@ -71,6 +73,8 @@ const columns: ColumnConfig[] = [
 // Page Promotions - ADMIN (avec bouton ajouter)
 const Page = () => {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] = useState<any>(null);
   
   const rows = mockPromotions.map((p) => ({
     ...p,
@@ -84,11 +88,29 @@ const Page = () => {
   ];
 
   const handleActionClick = (row: any, action: string) => {
-    if (action === 'view' || action === 'edit') {
+    if (action === 'view') {
       navigate(`/promotions/${row.code_promotion}`);
+    } else if (action === 'edit') {
+      setSelectedPromotion(row);
+      setModalOpen(true);
     } else if (action === 'delete') {
       console.log('Delete', row.code_promotion);
     }
+  };
+
+  const handleOpenModal = () => {
+    setSelectedPromotion(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedPromotion(null);
+  };
+
+  const handleSubmitPromotion = (data: any) => {
+    console.log('Nouvelle promotion:', data);
+    handleCloseModal();
   };
 
   return (
@@ -109,7 +131,7 @@ const Page = () => {
                   Gérez les promotions
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter une promotion
               </Button>
             </Stack>
@@ -131,6 +153,40 @@ const Page = () => {
               actions={actions}
               onActionClick={handleActionClick}
             />
+
+            {/* Modal d'ajout/modification de promotion */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title={selectedPromotion ? 'Modifier la promotion' : 'Ajouter une promotion'}
+              maxWidth="md"
+              size="large"
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    {selectedPromotion ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </>
+              }
+            >
+              <PromotionForm 
+                initialData={selectedPromotion ? {
+                  code_promotion: selectedPromotion.code_promotion,
+                  restaurant_code: selectedPromotion.restaurant_code,
+                  type_promotion: selectedPromotion.type_promotion,
+                  valeur: selectedPromotion.valeur,
+                  code_reduction: selectedPromotion.code_reduction,
+                  date_debut: selectedPromotion.date_debut,
+                  date_fin: selectedPromotion.date_fin,
+                  utilisations_max: selectedPromotion.utilisations_max,
+                  statut_promotion: selectedPromotion.statut_promotion
+                } : undefined}
+                onSubmit={handleSubmitPromotion}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

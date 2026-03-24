@@ -155,7 +155,7 @@ const Page = () => {
                     width: 80, 
                     height: 80, 
                     bgcolor: 'warning.main',
-                    color: 'white',
+                    color: 'warning.contrastText',
                     fontSize: '2rem'
                   }}
                 >

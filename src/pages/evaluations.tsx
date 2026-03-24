@@ -16,7 +16,7 @@ const columns: ColumnConfig[] = [
     headerAlign: 'center',
     renderCell: (params) => (
       <Stack direction="row" alignItems="center" spacing={0.5}>
-        <StarIcon sx={{ color: '#ffa726', fontSize: 16 }} />
+        <StarIcon sx={{ color: 'star.main', fontSize: 16 }} />
         <Typography variant="body2" fontWeight={600}>{params.value}/5</Typography>
       </Stack>
     )
@@ -138,25 +138,25 @@ const Page = () => {
                           </Stack>
                           <Stack alignItems="flex-end" spacing={1}>
                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <StarIcon sx={{ color: '#ffa726', fontSize: 20 }} />
+                              <StarIcon sx={{ color: 'star.main', fontSize: 20 }} />
                               <Typography variant="h6" fontWeight={700}>{evaluation.note}/5</Typography>
                             </Stack>
                             {evaluation.note_livraison && (
                               <Stack direction="row" alignItems="center" spacing={0.5}>
                                 <Typography variant="caption" color="text.secondary">Livraison:</Typography>
-                                <StarIcon sx={{ color: '#ffa726', fontSize: 14 }} />
+                                <StarIcon sx={{ color: 'star.main', fontSize: 14 }} />
                                 <Typography variant="caption">{evaluation.note_livraison}/5</Typography>
                               </Stack>
                             )}
                           </Stack>
                         </Stack>
                         {evaluation.commentaire && (
-                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'background.paper', borderRadius: 1 }}>
                             <Typography variant="body2">{evaluation.commentaire}</Typography>
                           </Box>
                         )}
                         {evaluation.commentaire_livraison && (
-                          <Box sx={{ mt: 1, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                          <Box sx={{ mt: 1, p: 1.5, bgcolor: 'background.paper', borderRadius: 1 }}>
                             <Typography variant="caption" color="text.secondary">Avis livraison: </Typography>
                             <Typography variant="body2">{evaluation.commentaire_livraison}</Typography>
                           </Box>

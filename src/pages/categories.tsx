@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Stack, Typography, Button, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -6,6 +7,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { CategoryForm } from 'src/components/forms/category-form';
 import { mockCategories } from 'src/data/mock';
 
 // Colonnes de configuration
@@ -40,6 +43,8 @@ const columns: ColumnConfig[] = [
 // Page Catégories - ADMIN (avec bouton ajouter)
 const Page = () => {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
   
   const rows = mockCategories.map((c) => ({
     ...c,
@@ -53,11 +58,29 @@ const Page = () => {
   ];
 
   const handleActionClick = (row: any, action: string) => {
-    if (action === 'view' || action === 'edit') {
+    if (action === 'view') {
       navigate(`/categories/${row.code_categorie}`);
+    } else if (action === 'edit') {
+      setSelectedCategory(row);
+      setModalOpen(true);
     } else if (action === 'delete') {
       console.log('Delete', row.code_categorie);
     }
+  };
+
+  const handleOpenModal = () => {
+    setSelectedCategory(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedCategory(null);
+  };
+
+  const handleSubmitCategory = (data: any) => {
+    console.log('Nouvelle catégorie:', data);
+    handleCloseModal();
   };
 
   return (
@@ -78,7 +101,7 @@ const Page = () => {
                   Gérez vos catégories
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter une catégorie
               </Button>
             </Stack>
@@ -99,6 +122,33 @@ const Page = () => {
               actions={actions}
               onActionClick={handleActionClick}
             />
+
+            {/* Modal d'ajout/modification de catégorie */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title={selectedCategory ? 'Modifier la catégorie' : 'Ajouter une catégorie'}
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    {selectedCategory ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </>
+              }
+            >
+              <CategoryForm 
+                initialData={selectedCategory ? {
+                  code_categorie: selectedCategory.code_categorie,
+                  restaurant_code: selectedCategory.restaurant_code,
+                  libelle_categorie: selectedCategory.libelle_categorie,
+                  statut_categorie: selectedCategory.statut_categorie === 'active'
+                } : undefined}
+                onSubmit={handleSubmitCategory}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

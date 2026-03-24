@@ -1,9 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import { Box, Container, Stack, Typography, Button, Grid, Card, CardContent, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { DataTable, ColumnConfig } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { ZoneLivraisonForm } from 'src/components/forms/zone-livraison-form';
 import { mockZones, mockVilles } from 'src/data/mock';
 
 const columns: ColumnConfig[] = [
@@ -28,10 +31,28 @@ const columns: ColumnConfig[] = [
 ];
 
 const Page = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<any>(null);
+  
   const rows = mockZones.map((z) => ({
     ...z,
     statut_zone: z.statut_zone === 1 ? 'active' : 'inactive'
   }));
+
+  const handleOpenModal = () => {
+    setSelectedZone(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedZone(null);
+  };
+
+  const handleSubmitZone = (data: any) => {
+    console.log('Nouvelle zone:', data);
+    handleCloseModal();
+  };
 
   return (
     <>
@@ -50,7 +71,7 @@ const Page = () => {
                   Gérez les zones de livraison par ville
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter une zone
               </Button>
             </Stack>
@@ -91,6 +112,27 @@ const Page = () => {
                 mapping: { active: 'success', inactive: 'error' }
               }}
             />
+
+            {/* Modal d'ajout de zone de livraison */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title="Ajouter une zone de livraison"
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    Ajouter
+                  </Button>
+                </>
+              }
+            >
+              <ZoneLivraisonForm 
+                onSubmit={handleSubmitZone}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

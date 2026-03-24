@@ -1,8 +1,11 @@
 import { Helmet } from 'react-helmet-async';
+import { useState } from 'react';
 import { Box, Container, Stack, Typography, Button, Grid, Card, CardContent, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import { DataTable, ColumnConfig } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { FamilleForm } from 'src/components/forms/famille-form';
 import { mockRestaurants } from 'src/data/mock';
 
 // Données familles basées sur db.sql
@@ -19,6 +22,9 @@ const columns: ColumnConfig[] = [
 ];
 
 const Page = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFamille, setSelectedFamille] = useState<any>(null);
+  
   const rows = famillesData.map((f) => {
     const restaurantCount = mockRestaurants.filter(r => r.famille_code === f.code_famille).length;
     return {
@@ -45,7 +51,7 @@ const Page = () => {
                   Gérez les familles de restaurants
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModalOpen(true)}>
                 Ajouter un type
               </Button>
             </Stack>
@@ -66,7 +72,7 @@ const Page = () => {
                         <Stack spacing={2}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center">
                             <RestaurantMenuIcon sx={{ fontSize: 40, color: 'inherit', opacity: 0.7 }} />
-                            <Chip label={restaurantCount} size="small" sx={{ bgcolor: 'white' }} />
+                            <Chip label={restaurantCount} size="small" sx={{ bgcolor: 'background.paper' }} />
                           </Stack>
                           <Box>
                             <Typography variant="h6" fontWeight={700} color="inherit">
@@ -93,6 +99,30 @@ const Page = () => {
                 mapping: { active: 'success', inactive: 'error' }
               }}
             />
+
+            {/* Modal d'ajout de type de cuisine */}
+            <FormModal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              title="Ajouter un type de cuisine"
+              actions={
+                <>
+                  <Button onClick={() => setModalOpen(false)} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    Ajouter
+                  </Button>
+                </>
+              }
+            >
+              <FamilleForm 
+                onSubmit={(data) => {
+                  console.log('Nouveau type de cuisine:', data);
+                  setModalOpen(false);
+                }}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

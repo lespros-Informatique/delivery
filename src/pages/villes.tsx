@@ -7,6 +7,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { VilleForm } from 'src/components/forms/ville-form';
 import { mockVilles } from 'src/data/mock';
 
 // Filtres de statut
@@ -58,6 +60,8 @@ const columns: ColumnConfig[] = [
 const Page = () => {
   const [filter, setFilter] = useState<string | 'all'>('all');
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVille, setSelectedVille] = useState<any>(null);
 
   // Préparer les données
   const rowsWithStatus = mockVilles.map((v) => ({
@@ -77,11 +81,29 @@ const Page = () => {
   ];
 
   const handleActionClick = (row: any, action: string) => {
-    if (action === 'view' || action === 'edit') {
+    if (action === 'view') {
       navigate(`/villes/${row.code_ville}`);
+    } else if (action === 'edit') {
+      setSelectedVille(row);
+      setModalOpen(true);
     } else if (action === 'delete') {
       console.log('Delete', row.code_ville);
     }
+  };
+
+  const handleOpenModal = () => {
+    setSelectedVille(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedVille(null);
+  };
+
+  const handleSubmitVille = (data: any) => {
+    console.log('Nouvelle ville:', data);
+    handleCloseModal();
   };
 
   return (
@@ -102,7 +124,7 @@ const Page = () => {
                   Gérez les villes de livraison
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter une ville
               </Button>
             </Stack>
@@ -138,6 +160,36 @@ const Page = () => {
               actions={actions}
               onActionClick={handleActionClick}
             />
+
+            {/* Modal d'ajout/modification de ville */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title={selectedVille ? 'Modifier la ville' : 'Ajouter une ville'}
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    {selectedVille ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </>
+              }
+            >
+              <VilleForm 
+                initialData={selectedVille ? {
+                  code_ville: selectedVille.code_ville,
+                  nom_ville: selectedVille.nom_ville,
+                  pays: selectedVille.pays,
+                  latitude: selectedVille.latitude,
+                  longitude: selectedVille.longitude,
+                  frais_livraison_defaut: selectedVille.frais_livraison_defaut,
+                  statut_ville: selectedVille.statut_ville === 'actif'
+                } : undefined}
+                onSubmit={handleSubmitVille}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

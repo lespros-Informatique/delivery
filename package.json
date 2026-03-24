@@ -28,6 +28,8 @@
     "@mui/lab": "5.0.0-alpha.155",
     "@mui/material": "^7.3.9",
     "@mui/x-data-grid": "^8.28.0",
+    "@mui/x-date-pickers": "^8.27.2",
+    "@mui/x-date-pickers-pro": "^8.27.2",
     "apexcharts": "3.44.2",
     "date-fns": "2.30.0",
     "formik": "2.4.5",

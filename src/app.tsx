@@ -4,6 +4,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { routes } from './routes';
 import { createTheme } from './theme';
 import { ThemeModeProvider, useThemeMode } from './theme/ThemeContext';
+import { AuthProvider } from './hooks/useAuth';
 import 'simplebar-react/dist/simplebar.min.css';
 
 const AppContent = () => {
@@ -30,7 +31,9 @@ const AppContent = () => {
 export const App = () => {
   return (
     <ThemeModeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeModeProvider>
   );
 };

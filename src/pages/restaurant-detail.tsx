@@ -154,7 +154,7 @@ const Page = () => {
                     width: 80, 
                     height: 80, 
                     bgcolor: 'success.main',
-                    color: 'white',
+                    color: 'success.contrastText',
                     fontSize: '2rem'
                   }}
                   src={restaurant.logo_restaurant || undefined}

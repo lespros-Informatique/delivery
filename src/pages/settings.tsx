@@ -173,7 +173,7 @@ const Page = () => {
                           height: 48, 
                           borderRadius: 2, 
                           bgcolor: 'primary.main',
-                          color: 'white',
+                          color: 'primary.contrastText',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'

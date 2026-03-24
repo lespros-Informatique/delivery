@@ -10,6 +10,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SecurityIcon from '@mui/icons-material/Security';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import { FormModal } from 'src/components/modal/form-modal';
+import { RoleForm } from 'src/components/forms/role-form';
 
 // Types
 interface Role {
@@ -61,7 +63,7 @@ const mockPermissions: Permission[] = [
   { id_permission: 15, code_permission: 'delivery.manage', description_permission: 'Gérer les livraisons', etat_permission: 1 },
   { id_permission: 16, code_permission: 'driver.manage', description_permission: 'Gérer les livreurs', etat_permission: 1 },
   { id_permission: 17, code_permission: 'payment.view', description_permission: 'Voir les paiements', etat_permission: 1 },
-  { id_permission: 18, code_permission: 'commission.manage', description_description: 'Gérer les commissions', etat_permission: 1 },
+  { id_permission: 18, code_permission: 'commission.manage', description_permission: 'Gérer les commissions', etat_permission: 1 },
   { id_permission: 19, code_permission: 'platform.settings', description_permission: 'Gérer les paramètres globaux', etat_permission: 1 },
   { id_permission: 20, code_permission: 'report.view', description_permission: 'Voir les rapports globaux', etat_permission: 1 },
 ];
@@ -79,6 +81,7 @@ const Page = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [permissionsDialog, setPermissionsDialog] = useState(false);
   const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Ouvrir le dialog des permissions
   const handleOpenPermissions = (role: Role) => {
@@ -128,7 +131,7 @@ const Page = () => {
                   Gérez les rôles utilisateurs et leurs permissions
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModalOpen(true)}>
                 Nouveau rôle
               </Button>
             </Stack>
@@ -185,7 +188,7 @@ const Page = () => {
                         >
                           <VpnKeyIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small">
+                        <IconButton size="small" onClick={() => setModalOpen(true)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton size="small" color="error">
@@ -283,6 +286,30 @@ const Page = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Modal d'ajout de rôle */}
+      <FormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Nouveau rôle"
+        actions={
+          <>
+            <Button onClick={() => setModalOpen(false)} color="inherit">
+              Annuler
+            </Button>
+            <Button variant="contained" type="submit" form="modal-form">
+              Ajouter
+            </Button>
+          </>
+        }
+      >
+        <RoleForm 
+          onSubmit={(data) => {
+            console.log('Nouveau rôle:', data);
+            setModalOpen(false);
+          }}
+        />
+      </FormModal>
     </>
   );
 };

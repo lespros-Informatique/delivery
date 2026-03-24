@@ -7,6 +7,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { FormModal } from 'src/components/modal/form-modal';
+import { RestaurantForm } from 'src/components/forms/restaurant-form';
 import { mockRestaurants } from 'src/data/mock';
 
 // Options d'actions
@@ -58,6 +60,8 @@ const columns: ColumnConfig[] = [
 const Page = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<string | 'all'>('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
 
   // Préparer les données
   const rowsWithStatus = mockRestaurants.map((r) => ({
@@ -69,6 +73,21 @@ const Page = () => {
   const filteredRows = filter === 'all' 
     ? rowsWithStatus 
     : rowsWithStatus.filter(r => r.etat_restaurant === filter);
+
+  const handleOpenModal = () => {
+    setSelectedRestaurant(null);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedRestaurant(null);
+  };
+
+  const handleSubmitRestaurant = (data: any) => {
+    console.log('Nouveau restaurant:', data);
+    handleCloseModal();
+  };
 
   return (
     <>
@@ -88,7 +107,7 @@ const Page = () => {
                   Gérez les restaurants
                 </Typography>
               </Box>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
                 Ajouter un restaurant
               </Button>
             </Stack>
@@ -118,6 +137,9 @@ const Page = () => {
               onActionClick={(row, action) => {
                 if (action === 'view') {
                   navigate(`/restaurants/${row.code_restaurant}`);
+                } else if (action === 'edit') {
+                  setSelectedRestaurant(row);
+                  setModalOpen(true);
                 } else {
                   console.log(action, row);
                 }
@@ -130,6 +152,40 @@ const Page = () => {
                 }
               }}
             />
+
+            {/* Modal d'ajout/modification de restaurant */}
+            <FormModal
+              open={modalOpen}
+              onClose={handleCloseModal}
+              title={selectedRestaurant ? 'Modifier le restaurant' : 'Ajouter un restaurant'}
+              maxWidth="md"
+              size="large"
+              actions={
+                <>
+                  <Button onClick={handleCloseModal} color="inherit">
+                    Annuler
+                  </Button>
+                  <Button variant="contained" type="submit" form="modal-form">
+                    {selectedRestaurant ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </>
+              }
+            >
+              <RestaurantForm 
+                initialData={selectedRestaurant ? {
+                  code_restaurant: selectedRestaurant.code_restaurant,
+                  libelle_restaurant: selectedRestaurant.libelle_restaurant,
+                  adresse_restaurant: selectedRestaurant.adresse_restaurant,
+                  ville_code: selectedRestaurant.ville_code,
+                  famille_code: selectedRestaurant.famille_code,
+                  telephone_restaurant: selectedRestaurant.telephone_restaurant,
+                  email_restaurant: selectedRestaurant.email_restaurant,
+                  logo_restaurant: selectedRestaurant.logo_restaurant,
+                  etat_restaurant: selectedRestaurant.etat_restaurant === 'actif'
+                } : undefined}
+                onSubmit={handleSubmitRestaurant}
+              />
+            </FormModal>
           </Stack>
         </Container>
       </Box>

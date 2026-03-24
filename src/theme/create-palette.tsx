@@ -1,6 +1,6 @@
 import { common } from '@mui/material/colors';
 import { alpha } from '@mui/material/styles';
-import { error, info, neutral, success, warning } from './colors';
+import { error, info, neutral, success, warning, star, white, chart } from './colors';
 import { getPrimary } from './utils';
 
 interface PaletteConfig {
@@ -51,6 +51,9 @@ export const createPalette = (config: PaletteConfig) => {
       secondary: isDark ? neutral[500] : neutral[500],
       disabled: alpha(isDark ? neutral[50] : neutral[900], 0.38)
     },
-    warning
+    warning,
+    star,
+    white,
+    chart
   };
 };

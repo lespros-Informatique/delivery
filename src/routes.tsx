@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Layout as DashboardLayout } from './layouts/dashboard/layout';
 import { Box, CircularProgress, Typography, keyframes } from '@mui/material';
 import { RouteObject } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Lazy loading des pages pour optimiser les performances
 const DashboardPage = lazy(() => import('./pages/dashboard'));
@@ -36,6 +37,8 @@ const FamillesPage = lazy(() => import('./pages/familles'));
 const GainsPage = lazy(() => import('./pages/gains'));
 const WalletsPage = lazy(() => import('./pages/wallets'));
 const EvaluationsPage = lazy(() => import('./pages/evaluations'));
+const LoginPage = lazy(() => import('./pages/login'));
+const ForgotPasswordPage = lazy(() => import('./pages/forgot-password'));
 const NotFoundPage = lazy(() => import('./pages/404'));
 
 // Animation de la barre de progression
@@ -142,11 +145,31 @@ const PageWrapper = () => {
 };
 
 export const routes: RouteObject[] = [
+  // Page de connexion (sans layout)
+  {
+    path: 'login',
+    element: (
+      <Suspense fallback={<PageFallback />}>
+        <LoginPage />
+      </Suspense>
+    )
+  },
+  // Page mot de passe oublié (sans layout)
+  {
+    path: 'forgot-password',
+    element: (
+      <Suspense fallback={<PageFallback />}>
+        <ForgotPasswordPage />
+      </Suspense>
+    )
+  },
   {
     element: (
-      <DashboardLayout>
-        <PageWrapper />
-      </DashboardLayout>
+      <ProtectedRoute>
+        <DashboardLayout>
+          <PageWrapper />
+        </DashboardLayout>
+      </ProtectedRoute>
     ),
     children: [
       // Dashboard - Vue principale

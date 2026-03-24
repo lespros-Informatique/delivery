@@ -12,7 +12,13 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
-  Tooltip
+  Tooltip,
+  InputBase,
+  Paper,
+  Popper,
+  List,
+  ListItem,
+  ListItemButton
 } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -20,8 +26,16 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
+import SearchIcon from '@mui/icons-material/Search';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import PeopleIcon from '@mui/icons-material/People';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useThemeMode } from 'src/theme/ThemeContext';
 import { Logo } from 'src/components/logo';
+import { useAuth } from 'src/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const TOP_NAV_HEIGHT = 64;
 
@@ -40,8 +54,50 @@ interface TopNavProps {
 export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
   const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
   const [userAnchor, setUserAnchor] = useState<null | HTMLElement>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchAnchor, setSearchAnchor] = useState<null | HTMLElement>(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { isDark, toggleTheme } = useThemeMode();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
+  // Données de recherche simulées
+  const searchResults = [
+    { type: 'Commande', label: 'Commande #1234', icon: <ReceiptIcon />, path: '/orders' },
+    { type: 'Restaurant', label: 'Burger King', icon: <RestaurantIcon />, path: '/restaurants' },
+    { type: 'Client', label: 'John Doe', icon: <PeopleIcon />, path: '/clients' },
+    { type: 'Livreur', label: 'Jean Kouassi', icon: <LocalShippingIcon />, path: '/livreurs' },
+    { type: 'Produit', label: 'Burger', icon: <ShoppingCartIcon />, path: '/products' },
+  ].filter(item => 
+    searchQuery && item.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSearchClick = (event: React.MouseEvent<HTMLElement>) => {
+    setSearchAnchor(event.currentTarget);
+  };
+
+  const handleMobileSearchToggle = () => {
+    setMobileSearchOpen(!mobileSearchOpen);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleSearchResultClick = (path: string) => {
+    navigate(path);
+    setSearchAnchor(null);
+    setMobileSearchOpen(false);
+    setSearchQuery('');
+  };
+
+  // Fermer la recherche mobile quand on appuie sur Escape
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setMobileSearchOpen(false);
+    }
+  };
+
   const notificationOpen = Boolean(notificationAnchor);
   const userOpen = Boolean(userAnchor);
 
@@ -56,6 +112,12 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
   const handleClose = () => {
     setNotificationAnchor(null);
     setUserAnchor(null);
+    setSearchAnchor(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -108,6 +170,148 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             }}
           >
             <Logo />
+          </Box>
+
+          {/* Icône de recherche mobile */}
+          <Tooltip title="Rechercher">
+            <IconButton 
+              color="inherit" 
+              onClick={handleMobileSearchToggle}
+              sx={{ display: { xs: 'flex', md: 'none' } }}
+            >
+              <SearchIcon />
+            </IconButton>
+          </Tooltip>
+
+          {/* Barre de recherche - centrée (desktop uniquement) */}
+          <Box sx={{ flex: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', px: 2 }}>
+            <Paper
+              component="div"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: 500,
+                px: 2,
+                py: 0.5,
+                borderRadius: 2,
+                bgcolor: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                transition: 'all 0.2s',
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.15)',
+                },
+              }}
+              onClick={handleSearchClick}
+            >
+              <SearchIcon sx={{ color: 'grey.400', mr: 1, fontSize: 20 }} />
+              <InputBase
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                sx={{
+                  flex: 1,
+                  color: 'white',
+                  '& input::placeholder': {
+                    color: 'grey.400',
+                    opacity: 1,
+                  },
+                }}
+              />
+            </Paper>
+          </Box>
+
+          {/* Popper de résultats de recherche */}
+          <Popper
+            open={Boolean(searchAnchor) && searchResults.length > 0}
+            anchorEl={searchAnchor}
+            placement="bottom-start"
+            sx={{ zIndex: 1300 }}
+          >
+            <Paper sx={{ width: 320, mt: 1, maxHeight: 280, overflow: 'auto', boxShadow: 3 }}>
+              <List dense>
+                {searchResults.map((result, index) => (
+                  <ListItem key={index} disablePadding>
+                    <ListItemButton onClick={() => handleSearchResultClick(result.path)}>
+                      <ListItemIcon sx={{ minWidth: 40, color: 'primary.main' }}>
+                        {result.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={result.label} 
+                        secondary={result.type}
+                        primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Popper>
+
+          {/* Barre de recherche mobile - affichée sous la nav (toggle) */}
+          <Box
+            sx={{
+              display: { xs: 'flex', md: 'none' },
+              position: 'absolute',
+              top: TOP_NAV_HEIGHT,
+              left: 0,
+              right: 0,
+              p: 2,
+              bgcolor: 'neutral.900',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              transform: mobileSearchOpen ? 'translateY(0)' : 'translateY(-100%)',
+              opacity: mobileSearchOpen ? 1 : 0,
+              transition: 'all 0.3s ease-in-out',
+              zIndex: 1200,
+            }}
+            onKeyDown={handleKeyDown}
+          >
+            <Paper
+              component="div"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                bgcolor: 'grey.100',
+              }}
+            >
+              <SearchIcon sx={{ color: 'grey.500', mr: 1 }} />
+              <InputBase
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                sx={{ flex: 1, color: 'grey.900' }}
+                autoFocus
+              />
+            </Paper>
+            {/* Résultats de recherche mobile */}
+            {mobileSearchOpen && searchResults.length > 0 && (
+              <Paper sx={{ width: '100%', mt: 1, maxHeight: 200, overflow: 'auto', boxShadow: 3 }}>
+                <List dense>
+                  {searchResults.map((result, index) => (
+                    <ListItem key={index} disablePadding>
+                      <ListItemButton onClick={() => handleSearchResultClick(result.path)}>
+                        <ListItemIcon sx={{ minWidth: 40, color: 'primary.main' }}>
+                          {result.icon}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={result.label} 
+                          secondary={result.type}
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                          secondaryTypographyProps={{ variant: 'caption' }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
           </Box>
         </Stack>
 
@@ -238,10 +442,10 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
           >
             <Box sx={{ px: 2, py: 1.5 }}>
               <Typography variant="subtitle2" fontWeight={600}>
-                Chen Simmons
+                {user?.name || 'Utilisateur'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                chen@exemple.com
+                {user?.email || 'email@exemple.com'}
               </Typography>
             </Box>
             <Divider />
@@ -258,7 +462,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
               <ListItemText>Paramètres</ListItemText>
             </MenuItem>
             <Divider />
-            <MenuItem onClick={handleClose} sx={{ color: 'error.main' }}>
+            <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" color="error" />
               </ListItemIcon>
