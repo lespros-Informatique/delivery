@@ -1,11 +1,15 @@
 import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Card, Stack, Typography, Chip, Grid } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import { DataTable, ColumnConfig } from 'src/components/data-table';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
 import { mockCommandes } from 'src/data/mock';
 import { StatutCommande } from 'src/types';
 import { PageContainer } from 'src/components/page-container';
@@ -45,6 +49,13 @@ const columns: ColumnConfig[] = [
     minWidth: 120 
   },
   { 
+    field: 'statut_commande', 
+    headerName: 'STATUT', 
+    width: 140,
+    align: 'center',
+    headerAlign: 'center',
+  },
+  { 
     field: 'total_commande', 
     headerName: 'TOTAL', 
     flex: 1, 
@@ -57,7 +68,31 @@ const columns: ColumnConfig[] = [
 
 // Page Commandes - Liste SIMPLE (sans bouton ajouter)
 const Page = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<StatutCommande | 'all'>('all');
+
+  // Actions disponibles
+  const actions: ActionOption[] = [
+    { label: 'Voir détails', icon: <VisibilityIcon fontSize="small" />, action: 'view' },
+    { label: 'Modifier', icon: <EditIcon fontSize="small" />, action: 'edit' },
+    { label: 'Supprimer', icon: <DeleteIcon fontSize="small" color="error" />, action: 'delete', color: 'error' },
+  ];
+
+  // Gestion des actions
+  const handleActionClick = (row: Record<string, unknown>, action: string) => {
+    const code = row.code_commande as string;
+    switch (action) {
+      case 'view':
+        navigate(`/orders/${code}`);
+        break;
+      case 'edit':
+        console.log('Edit', code);
+        break;
+      case 'delete':
+        console.log('Delete', code);
+        break;
+    }
+  };
 
   // Filtrer les commandes
   const filteredCommandes = filter === 'all' 
@@ -155,6 +190,8 @@ const Page = () => {
               columns={columns}
               pageSize={10}
               pageSizeOptions={[5, 10, 25, 50]}
+              actions={actions}
+              onActionClick={handleActionClick}
               statusColumn={{
                 field: 'statut_commande',
                 mapping: {

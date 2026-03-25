@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Stack, Typography, Button } from '@mui/material';
+import { Box, Container, Stack, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,46 +9,46 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
 import { FormModal } from 'src/components/modal/form-modal';
 import { UserForm } from 'src/components/forms/user-form';
-import { mockUsers } from 'src/data/mock';
+import { usersService, User } from 'src/lib/api';
 
-// Options d'actions
+// Options d'actions pour la liste des utilisateurs
 const actionOptions: ActionOption[] = [
   { label: 'Voir', icon: <VisibilityIcon fontSize="small" />, action: 'view', color: 'primary' },
   { label: 'Modifier', icon: <EditIcon fontSize="small" />, action: 'edit', color: 'info' },
   { label: 'Supprimer', icon: <DeleteIcon fontSize="small" />, action: 'delete', color: 'error' },
 ];
 
-// Colonnes de configuration
+// Colonnes de configuration -适配后端API字段
 const columns: ColumnConfig[] = [
   { 
-    field: 'code_user', 
+    field: 'codeUser', 
     headerName: 'CODE', 
     width: 100 
   },
   { 
-    field: 'nom_user', 
+    field: 'nomUser', 
     headerName: 'NOM', 
     flex: 1, 
     minWidth: 150 
   },
   { 
-    field: 'email_user', 
+    field: 'email', 
     headerName: 'EMAIL', 
     flex: 1, 
     minWidth: 180 
   },
   { 
-    field: 'telephone_user', 
+    field: 'telephoneUser', 
     headerName: 'TÉLÉPHONE', 
     width: 150 
   },
   { 
-    field: 'created_at_user', 
+    field: 'createdAt', 
     headerName: 'DATE CRÉATION', 
     width: 160,
-    valueFormatter: (value) => {
+    valueFormatter: (value: any) => {
       if (!value) return '';
-      return new Date(value as string).toLocaleDateString('fr-FR');
+      return new Date(value).toLocaleDateString('fr-FR');
     }
   },
 ];
@@ -57,12 +57,93 @@ const columns: ColumnConfig[] = [
 const Page = () => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  
-  const rows = mockUsers.map((u) => ({
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Charger les utilisateurs depuis l'API
+  const loadUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await usersService.getAll({ page: 1, limit: 100 });
+      if (response.success && response.data) {
+        setUsers(response.data.data);
+      } else {
+        setError(response.message || 'Erreur lors du chargement des utilisateurs');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur de connexion');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  // Préparer les données pour le DataTable
+  const rows = users.map((u) => ({
     ...u,
-    etat_users: u.etat_users === 1 ? 'actif' : 'inactif'
+    etat_users: u.active ? 'actif' : 'inactif'
   }));
+
+  // Gestionnaire de clic sur les actions
+  const handleActionClick = (row: any, action: string) => {
+    if (action === 'view') {
+      navigate(`/users/${row.codeUser}`);
+    } else if (action === 'edit') {
+      setSelectedUser(row);
+      setModalOpen(true);
+    } else if (action === 'delete') {
+      handleDelete(row.id);
+    }
+  };
+
+  // Supprimer un utilisateur
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) {
+      try {
+        const response = await usersService.delete(id);
+        if (response.success) {
+          loadUsers();
+        } else {
+          setError(response.message || 'Erreur lors de la suppression');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Erreur lors de la suppression');
+      }
+    }
+  };
+
+  // Soumission du formulaire
+  const handleSubmit = async (data: any) => {
+    try {
+      if (selectedUser) {
+        // Modifier un utilisateur existant
+        const response = await usersService.update(selectedUser.id, data);
+        if (response.success) {
+          setModalOpen(false);
+          setSelectedUser(null);
+          loadUsers();
+        } else {
+          setError(response.message || 'Erreur lors de la modification');
+        }
+      } else {
+        // Créer un nouvel utilisateur
+        const response = await usersService.create(data);
+        if (response.success) {
+          setModalOpen(false);
+          loadUsers();
+        } else {
+          setError(response.message || 'Erreur lors de la création');
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de l\'opération');
+    }
+  };
 
   return (
     <>
@@ -87,40 +168,51 @@ const Page = () => {
               </Button>
             </Stack>
 
-            {/* DataTable - ADMIN */}
-            <DataTable
-              rows={rows}
-              columns={columns}
-              pageSize={10}
-              pageSizeOptions={[5, 10, 25, 50]}
-              actions={actionOptions}
-              onActionClick={(row, action) => {
-                if (action === 'view') {
-                  navigate(`/users/${row.code_user}`);
-                } else if (action === 'edit') {
-                  setSelectedUser(row);
-                  setModalOpen(true);
-                } else {
-                  console.log(action, row);
-                }
-              }}
-              statusColumn={{
-                field: 'etat_users',
-                mapping: {
-                  actif: 'success',
-                  inactif: 'error'
-                }
-              }}
-            />
+            {/* Message d'erreur */}
+            {error && (
+              <Alert severity="error" onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            {/* Indicateur de chargement */}
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              /* DataTable - ADMIN */
+              <DataTable
+                rows={rows}
+                columns={columns}
+                pageSize={10}
+                pageSizeOptions={[5, 10, 25, 50]}
+                actions={actionOptions}
+                onActionClick={handleActionClick}
+                statusColumn={{
+                  field: 'etat_users',
+                  mapping: {
+                    actif: 'success',
+                    inactif: 'error'
+                  }
+                }}
+              />
+            )}
 
             {/* Modal d'ajout/modification d'utilisateur */}
             <FormModal
               open={modalOpen}
-              onClose={() => setModalOpen(false)}
+              onClose={() => {
+                setModalOpen(false);
+                setSelectedUser(null);
+              }}
               title={selectedUser ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur'}
               actions={
                 <>
-                  <Button onClick={() => setModalOpen(false)} color="inherit">
+                  <Button onClick={() => {
+                    setModalOpen(false);
+                    setSelectedUser(null);
+                  }} color="inherit">
                     Annuler
                   </Button>
                   <Button variant="contained" type="submit" form="modal-form">
@@ -131,18 +223,13 @@ const Page = () => {
             >
               <UserForm 
                 initialData={selectedUser ? {
-                  code_user: selectedUser.code_user,
-                  nom_user: selectedUser.nom_user,
-                  prenom_user: selectedUser.prenom_user,
-                  email_user: selectedUser.email_user,
-                  telephone_user: selectedUser.telephone_user,
-                  etat_users: selectedUser.etat_users === 'actif'
+                  code_user: selectedUser.codeUser,
+                  nom_user: selectedUser.nomUser,
+                  email_user: selectedUser.email,
+                  telephone_user: selectedUser.telephoneUser,
+                  etat_users: selectedUser.active
                 } : undefined}
-                onSubmit={(data) => {
-                  console.log('Nouvel utilisateur:', data);
-                  setModalOpen(false);
-                  setSelectedUser(null);
-                }}
+                onSubmit={handleSubmit}
               />
             </FormModal>
           </Stack>

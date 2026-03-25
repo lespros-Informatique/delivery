@@ -1,88 +1,202 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+/**
+ * Auth Hook - Authentication State Management
+ * ==========================================
+ * React hook for managing authentication state with Provider
+ * 
+ * Security Features:
+ * - HTTP-only cookies for token storage (XSS protection)
+ * - Automatic token refresh before expiration
+ * - Secure logout with cookie clearing
+ */
 
-interface User {
-  email: string;
-  name: string;
-  role: string;
+import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
+import { authService, AuthUser } from '../lib/api';
+
+// Type definitions
+interface UseAuthReturn {
+  user: AuthUser | null;
   isAuthenticated: boolean;
-}
-
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
   isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (email: string, password: string, nomUser: string, telephoneUser?: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context
+const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
 
-// Mock users pour l'authentification
-const mockUsers = [
-  { email: 'admin@woli.com', password: 'admin123', name: 'Admin Woli', role: 'admin' },
-  { email: 'restaurant@woli.com', password: 'resto123', name: 'Restaurant Owner', role: 'restaurant_owner' },
-  { email: 'manager@woli.com', password: 'manager123', name: 'Manager', role: 'manager' },
-  { email: 'livreur@woli.com', password: 'livreur123', name: 'Livreur', role: 'livreur' },
-];
+// Auth Provider component
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // Initialize auth state on mount
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté au chargement
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.isAuthenticated) {
-          setUser(parsedUser);
-        }
-      } catch (e) {
-        localStorage.removeItem('user');
+    const initAuth = async () => {
+      // Check if we have a stored user (from previous session)
+      const storedUser = authService.getCurrentUser();
+      
+      if (storedUser) {
+        setUser(storedUser);
+        // Start token refresh timer
+        scheduleTokenRefresh();
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initAuth();
+
+    // Cleanup timer on unmount
+    return () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+    };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simuler une vérification d'authentification
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const foundUser = mockUsers.find(
-      u => u.email === email && u.password === password
-    );
-
-    if (foundUser) {
-      const userData: User = {
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role,
-        isAuthenticated: true
-      };
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      return true;
+  // Schedule token refresh (every 12 minutes for 15min tokens)
+  const scheduleTokenRefresh = useCallback(() => {
+    // Clear any existing timer
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
     }
 
-    return false;
-  };
+    // Refresh token 3 minutes before expiration (15min token)
+    const timer = setTimeout(async () => {
+      try {
+        const response = await authService.refresh();
+        if (response.success && response.data) {
+          authService.setCurrentUser(response.data.user);
+          setUser(response.data.user);
+          scheduleTokenRefresh(); // Schedule next refresh
+        }
+      } catch (err) {
+        console.error('Token refresh failed:', err);
+        // If refresh fails, user will need to login again
+        logout();
+      }
+    }, 12 * 60 * 1000); // 12 minutes
 
-  const logout = () => {
-    localStorage.removeItem('user');
+    setRefreshTimer(timer);
+  }, [refreshTimer]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (response.success && response.data) {
+        // Store user for UI state (not for auth - cookies handle that)
+        authService.setCurrentUser(response.data.user);
+        setUser(response.data.user);
+        // Schedule token refresh
+        scheduleTokenRefresh();
+        return { success: true };
+      } else {
+        setError(response.message || 'Échec de la connexion');
+        return { success: false, message: response.message };
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Erreur lors de la connexion';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [scheduleTokenRefresh]);
+
+  const register = useCallback(async (
+    email: string, 
+    password: string, 
+    nomUser: string, 
+    telephoneUser?: string
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await authService.register({ 
+        email, 
+        password, 
+        nomUser, 
+        telephoneUser 
+      });
+      
+      if (response.success && response.data) {
+        // Store user for UI state
+        authService.setCurrentUser(response.data.user);
+        setUser(response.data.user);
+        // Schedule token refresh
+        scheduleTokenRefresh();
+        return { success: true };
+      } else {
+        setError(response.message || "Échec de l'inscription");
+        return { success: false, message: response.message };
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Erreur lors de l'inscription";
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [scheduleTokenRefresh]);
+
+  const logout = useCallback(async () => {
+    // Clear timer
+    if (refreshTimer) {
+      clearTimeout(refreshTimer);
+      setRefreshTimer(null);
+    }
+
+    // Call logout endpoint to clear cookies
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+
+    // Clear local state
+    authService.clearCurrentUser();
     setUser(null);
+    
+    // Redirect to login
+    window.location.href = '/login';
+  }, [refreshTimer]);
+
+  const value: UseAuthReturn = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    register,
+    logout,
+    error,
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+// Hook to use auth context
+export const useAuth = (): UseAuthReturn => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
+export default useAuth;

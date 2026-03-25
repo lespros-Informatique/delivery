@@ -8,6 +8,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 // Lazy loading des pages pour optimiser les performances
 const DashboardPage = lazy(() => import('./pages/dashboard'));
 const OrdersPage = lazy(() => import('./pages/orders'));
+const OrderDetailPage = lazy(() => import('./pages/order-detail'));
 const ProductsPage = lazy(() => import('./pages/products'));
 const ProductDetailPage = lazy(() => import('./pages/product-detail'));
 const CategoriesPage = lazy(() => import('./pages/categories'));
@@ -181,6 +182,11 @@ export const routes: RouteObject[] = [
       {
         path: 'orders',
         element: <OrdersPage />
+      },
+      // Order Detail
+      {
+        path: 'orders/:code',
+        element: <OrderDetailPage />
       },
       // Produits
       {

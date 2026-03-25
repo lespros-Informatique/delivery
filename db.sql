@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : lun. 23 mars 2026 à 11:07
+-- Généré le : mer. 25 mars 2026 à 12:14
 -- Version du serveur : 9.1.0
 -- Version de PHP : 8.3.14
 
@@ -735,10 +735,21 @@ CREATE TABLE IF NOT EXISTS `users` (
   `etat_users` tinyint DEFAULT '1',
   `created_at_user` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at_user` datetime DEFAULT CURRENT_TIMESTAMP,
+  `token_user` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id_user`),
   UNIQUE KEY `code_user` (`code_user`),
   UNIQUE KEY `email` (`email_user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `users`
+--
+
+INSERT INTO `users` (`id_user`, `code_user`, `nom_user`, `email_user`, `telephone_user`, `mot_de_passe`, `etat_users`, `created_at_user`, `updated_at_user`, `token_user`) VALUES
+(1, 'USR002', 'Admin Test', 'admin@test.com', '0700000001', '$2b$10$N/ripa5YsyJjzn4NSBUrWur4z88yA3hldEJuxEQRfU1tX2LxUWP6.', 1, '2026-03-25 10:33:32', '2026-03-25 10:33:32', NULL),
+(2, 'USER_0002', 'Test User', 'test@test.com', NULL, '$2b$12$ABeGSLsygp8Qy1JVmHQb5.AOQzPVOldwae7EWE2Gge5JBQtcz/qyS', 1, '2026-03-25 11:59:40', '2026-03-25 11:59:40', NULL),
+(3, 'USER_0003', 'Test User 2', 'test2@test.com', NULL, '$2b$12$T3Cme30/Igb81MLzCULS7u/vxSQrDMdFNvVgfrvMfN0SrTlmBHMH2', 1, '2026-03-25 12:01:07', '2026-03-25 12:01:07', NULL),
+(4, 'USER_0004', 'Test User 3', 'test3@test.com', NULL, '$2b$12$5lJ9YkR3H9TOZCqy0eYNRevAAJXUDoBzbe16gfMHq2KqAgT/V0m9C', 1, '2026-03-25 12:09:17', '2026-03-25 12:09:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -756,7 +767,14 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   UNIQUE KEY `user_code` (`user_code`,`role_code`),
   KEY `user_code_2` (`user_code`),
   KEY `role_code` (`role_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `user_roles`
+--
+
+INSERT INTO `user_roles` (`id_user_role`, `user_code`, `role_code`, `etat_user_role`) VALUES
+(1, 'USR002', 'admin', 1);
 
 -- --------------------------------------------------------
 

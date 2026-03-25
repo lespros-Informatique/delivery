@@ -380,8 +380,8 @@ const Page = () => {
                       <Stack spacing={1.5}>
                         {unreadNotifications.slice(0, 3).map((notif) => (
                           <Box key={notif.code_notification} sx={{ p: 1.5, bgcolor: 'error.light', borderRadius: 1, cursor: 'pointer', '&:hover': { bgcolor: 'error.main' } }}>
-                            <Typography variant="subtitle2" fontWeight={600} color="error.contrastText">{notif.titre}</Typography>
-                            <Typography variant="caption" color="error.contrastText" sx={{ opacity: 0.8 }}>{notif.message}</Typography>
+                            <Typography variant="subtitle2" fontWeight={600} color="error.primary">{notif.titre}</Typography>
+                            <Typography variant="caption" color="error.secondary" sx={{ opacity: 0.8 }}>{notif.message}</Typography>
                           </Box>
                         ))}
                         {unreadNotifications.length === 0 && (

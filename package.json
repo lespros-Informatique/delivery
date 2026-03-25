@@ -31,6 +31,7 @@
     "@mui/x-date-pickers": "^8.27.2",
     "@mui/x-date-pickers-pro": "^8.27.2",
     "apexcharts": "3.44.2",
+    "axios": "^1.13.6",
     "date-fns": "2.30.0",
     "formik": "2.4.5",
     "lucide-react": "^0.400.0",

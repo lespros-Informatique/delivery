@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
   Box, Container, Card, CardContent, TextField, Button, Typography, 
@@ -11,10 +11,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import { useAuth } from 'src/hooks/useAuth';
-
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth();
   
   const [email, setEmail] = useState('');
@@ -23,7 +21,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  const from = "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +30,10 @@ const LoginPage = () => {
 
     const success = await login(email, password);
 
-    if (success) {
+    if (success.success) {
       navigate(from, { replace: true });
     } else {
-      setError('Email ou mot de passe incorrect');
+      setError(success.message || 'Email ou mot de passe incorrect');
     }
 
     setLoading(false);
