@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { 
-  Avatar, 
   Box, 
   Stack, 
   IconButton, 
@@ -18,32 +17,39 @@ import {
   Popper,
   List,
   ListItem,
-  ListItemButton
+  ListItemButton,
+  Grid
 } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PaymentIcon from '@mui/icons-material/Payment';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import AppsIcon from '@mui/icons-material/Apps';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import PeopleIcon from '@mui/icons-material/People';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useThemeMode } from 'src/theme/ThemeContext';
 import { Logo } from 'src/components/logo';
 import { useAuth } from 'src/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { navGroups } from './config';
 
 const TOP_NAV_HEIGHT = 64;
 
 // Notifications data
 const notifications = [
-  { id: 1, title: 'Nouvelle commande', message: 'Commande #1234 reçue', time: 'Il y a 5 min', read: false },
-  { id: 2, title: 'Paiement confirmé', message: 'Paiement de $150.00 validé', time: 'Il y a 1h', read: false },
-  { id: 3, title: 'Stock faible', message: '5 produits en stock bas', time: 'Il y a 2h', read: true },
+  { id: 1, title: 'Nouvelle commande', message: 'Commande #1234 reçue', time: 'Il y a 5 min', read: false, icon: <ShoppingCartIcon />, color: 'primary.main' },
+  { id: 2, title: 'Paiement confirmé', message: 'Paiement de $150.00 validé', time: 'Il y a 1h', read: false, icon: <PaymentIcon />, color: 'success.main' },
+  { id: 3, title: 'Stock faible', message: '5 produits en stock bas', time: 'Il y a 2h', read: true, icon: <InventoryIcon />, color: 'warning.main' },
 ];
 
 interface TopNavProps {
@@ -54,6 +60,7 @@ interface TopNavProps {
 export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
   const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
   const [userAnchor, setUserAnchor] = useState<null | HTMLElement>(null);
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAnchor, setSearchAnchor] = useState<null | HTMLElement>(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -100,6 +107,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
 
   const notificationOpen = Boolean(notificationAnchor);
   const userOpen = Boolean(userAnchor);
+  const menuOpen = Boolean(menuAnchor);
 
   const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationAnchor(event.currentTarget);
@@ -109,15 +117,19 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
     setUserAnchor(event.currentTarget);
   };
 
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
   const handleClose = () => {
     setNotificationAnchor(null);
     setUserAnchor(null);
     setSearchAnchor(null);
+    setMenuAnchor(null);
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -126,7 +138,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
     <Box
       component="header"
       sx={{
-        backgroundColor: 'neutral.900',
+        backgroundColor: '#28303d',
         color: 'common.white',
         position: 'fixed',
         width: '100%',
@@ -151,6 +163,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             color="inherit" 
             onClick={onToggleSidebar}
             sx={{ mr: 1 }}
+            disableRipple
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -178,6 +191,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
               color="inherit" 
               onClick={handleMobileSearchToggle}
               sx={{ display: { xs: 'flex', md: 'none' } }}
+              disableRipple
             >
               <SearchIcon />
             </IconButton>
@@ -320,6 +334,20 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
           direction="row"
           spacing={1}
         >
+          {/* Menu Toggle */}
+          <Tooltip title="Applications">
+            <IconButton 
+              color="inherit" 
+              onClick={handleMenuClick}
+              sx={{ 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+              }}
+              disableRipple
+            >
+              <AppsIcon />
+            </IconButton>
+          </Tooltip>
+
           {/* Theme Toggle */}
           <Tooltip title={isDark ? 'Mode clair' : 'Mode sombre'}>
             <IconButton 
@@ -328,6 +356,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
               sx={{ 
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
               }}
+              disableRipple
             >
               {isDark ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
@@ -340,6 +369,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             sx={{ 
               '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
             }}
+            disableRipple
           >
             <Badge 
               badgeContent={unreadCount} 
@@ -360,56 +390,153 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             anchorEl={notificationAnchor}
             open={notificationOpen}
             onClose={handleClose}
+            disableScrollLock
             PaperProps={{
               sx: {
-                width: 360,
-                maxHeight: 400,
-                mt: 1.5
+                width: 380,
+                maxHeight: 450,
+                mt: 1.5,
+                borderRadius: 2,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
               }
             }}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle1" fontWeight={600}>
+            <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6" fontWeight={600}>
                 Notifications
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Vous avez {unreadCount} notification(s) non lue(s)
+              <Typography variant="caption" color="primary" sx={{ cursor: 'pointer' }}>
+                Tout marquer comme lu
               </Typography>
             </Box>
             <Divider />
-            {notifications.map((notification) => (
-              <MenuItem 
-                key={notification.id} 
-                onClick={handleClose}
-                sx={{ 
-                  py: 1.5,
-                  px: 2,
-                  bgcolor: notification.read ? 'transparent' : 'action.hover'
-                }}
-              >
-                <Box sx={{ width: '100%' }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle2" fontWeight={notification.read ? 400 : 600}>
-                      {notification.title}
+            <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
+              {notifications.map((notification) => (
+                <MenuItem 
+                  key={notification.id} 
+                  onClick={handleClose}
+                  sx={{ 
+                    py: 1.5,
+                    px: 2.5,
+                    bgcolor: notification.read ? 'transparent' : 'rgba(25, 118, 210, 0.08)',
+                    '&:hover': {
+                      bgcolor: 'action.hover'
+                    },
+                    borderLeft: notification.read ? 'none' : '3px solid',
+                    borderColor: 'primary.main'
+                  }}
+                >
+                  <Box sx={{ mr: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box sx={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      bgcolor: 'action.hover',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: notification.color || 'primary.main'
+                    }}>
+                      {notification.icon}
+                    </Box>
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="subtitle2" fontWeight={notification.read ? 400 : 600} noWrap>
+                        {notification.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 1, flexShrink: 0 }}>
+                        {notification.time}
+                      </Typography>
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }} noWrap>
+                      {notification.message}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {notification.time}
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {notification.message}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
+                  </Box>
+                </MenuItem>
+              ))}
+            </Box>
             <Divider />
-            <MenuItem onClick={handleClose} sx={{ justifyContent: 'center', py: 1.5 }}>
-              <Typography variant="body2" color="primary">
+            <MenuItem 
+              onClick={() => {
+                navigate('/all-notifications');
+                handleClose();
+              }} 
+              sx={{ justifyContent: 'center', py: 1.5, color: 'primary.main' }}
+            >
+              <Typography variant="body2" fontWeight={500}>
                 Voir toutes les notifications
               </Typography>
             </MenuItem>
+          </Menu>
+
+          {/* Navigation Menu */}
+          <Menu
+            anchorEl={menuAnchor}
+            open={menuOpen}
+            onClose={handleClose}
+            disableScrollLock
+            PaperProps={{
+              sx: {
+                width: 700,
+                maxHeight: 500,
+                mt: 1.5,
+                p: 2
+              }
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, px: 1 }}>
+              Navigation rapide
+            </Typography>
+            <Grid container spacing={1.5}>
+              {navGroups.flatMap(group => 
+                group.items.map((item, itemIndex) => (
+                  <Grid item xs={3} key={`${group.title}-${itemIndex}`}>
+                    <Paper
+                      onClick={() => {
+                        navigate(item.href);
+                        handleClose();
+                      }}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        borderRadius: 2,
+                        '&:hover': {
+                          bgcolor: 'primary.light',
+                          transform: 'translateY(-2px)',
+                          boxShadow: 2
+                        }
+                      }}
+                    >
+                      <Box sx={{ color: 'primary.main', mb: 1 }}>
+                        {item.icon}
+                      </Box>
+                      <Typography 
+                        variant="caption" 
+                        textAlign="center" 
+                        sx={{ 
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {item.label}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))
+              )}
+            </Grid>
           </Menu>
 
           {/* User Menu */}
@@ -419,11 +546,10 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
               p: 0.5,
               '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
             }}
+            disableRipple
           >
-            <Avatar
-              src="/assets/avatars/avatar-chen-simmons.jpg"
-              variant="rounded"
-              sx={{ width: 32, height: 32 }}
+            <AccountCircleIcon 
+              sx={{ width: 32, height: 32, color: 'grey.300' }}
             />
           </IconButton>
           
@@ -431,38 +557,70 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             anchorEl={userAnchor}
             open={userOpen}
             onClose={handleClose}
+            disableScrollLock
             PaperProps={{
               sx: {
-                width: 220,
-                mt: 1.5
+                width: 280,
+                mt: 1.5,
+                borderRadius: 2,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
               }
             }}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle2" fontWeight={600}>
-                {user?.name || 'Utilisateur'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {user?.email || 'email@exemple.com'}
-              </Typography>
+            <Box sx={{ px: 2.5, py: 2 }}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: '50%', 
+                  bgcolor: 'primary.light',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <AccountCircleIcon sx={{ fontSize: 28, color: 'primary.main' }} />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {user?.name || 'Utilisateur'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user?.email || 'email@exemple.com'}
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
             <Divider />
-            <MenuItem onClick={handleClose}>
-              <ListItemIcon>
-                <PersonIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Mon Profil</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <ListItemIcon>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Paramètres</ListItemText>
-            </MenuItem>
+            <Box sx={{ py: 1 }}>
+              <MenuItem 
+                onClick={() => {
+                  navigate('/profile');
+                  handleClose();
+                }} 
+                sx={{ py: 1.25, px: 2.5 }}
+              >
+                <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Mon Profil</ListItemText>
+              </MenuItem>
+              <MenuItem 
+                onClick={() => {
+                  navigate('/settings');
+                  handleClose();
+                }} 
+                sx={{ py: 1.25, px: 2.5 }}
+              >
+                <ListItemIcon>
+                  <SettingsIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Paramètres</ListItemText>
+              </MenuItem>
+            </Box>
             <Divider />
-            <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+            <MenuItem onClick={handleLogout} sx={{ py: 1.25, px: 2.5, color: 'error.main' }}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" color="error" />
               </ListItemIcon>

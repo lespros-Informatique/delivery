@@ -8,6 +8,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import fastifyJwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
 
 // Routes
 import { authRoutes } from './presentation/routes/auth.routes.js';
@@ -47,15 +48,35 @@ const registerPlugins = async (): Promise<void> => {
     contentSecurityPolicy: false,
   });
 
+  // Rate limiting - configurable via environment variables
+  await app.register(rateLimit, {
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes default
+    allowList: ['/health'], // Don't rate limit health check
+    errorResponseBuilder: (request, context) => ({
+      success: false,
+      message: `Trop de requêtes. Veuillez réessayer dans quelques instants.`,
+      after: context.ttl
+    })
+  });
+
   // CORS
+  // In development: allow all origins. In production: use specific origins from env
+  const corsOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+    : (process.env.NODE_ENV === 'production' ? [] : true);
+  
   await app.register(cors, {
-    origin: true,
+    origin: corsOrigins,
     credentials: true,
+    exposedHeaders: ['set-cookie'],
   });
 
   // JWT configuration with access and refresh tokens
   await app.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    secret: process.env.JWT_SECRET ?? (() => {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    })(),
     sign: {
       expiresIn: process.env.JWT_EXPIRES_IN || '15m', // Access token: 15 minutes
     },

@@ -67,7 +67,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed - clear state and redirect to login
         authService.clearCurrentUser();
-        window.location.href = '/login';
+        authService.clearToken();
+        window.location.href = '/delivery/login';
         return Promise.reject(refreshError);
       }
     }

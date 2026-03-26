@@ -78,10 +78,10 @@ export const clientsService = {
   },
 
   /**
-   * Get client by ID
+   * Get client by code
    */
-  async getById(id: number): Promise<ApiResponse<Client>> {
-    const response = await apiClient.get<ApiResponse<Client>>(`/clients/${id}`);
+  async getByCode(code: string): Promise<ApiResponse<Client>> {
+    const response = await apiClient.get<ApiResponse<Client>>(`/clients/${code}`);
     return response.data;
   },
 
@@ -96,24 +96,24 @@ export const clientsService = {
   /**
    * Update client
    */
-  async update(id: number, data: UpdateClientRequest): Promise<ApiResponse<Client>> {
-    const response = await apiClient.put<ApiResponse<Client>>(`/clients/${id}`, data);
+  async update(codeClient: string, data: UpdateClientRequest): Promise<ApiResponse<Client>> {
+    const response = await apiClient.put<ApiResponse<Client>>(`/clients/${codeClient}`, data);
     return response.data;
   },
 
   /**
    * Delete client
    */
-  async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await apiClient.delete<ApiResponse<void>>(`/clients/${id}`);
+  async delete(codeClient: string): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete<ApiResponse<void>>(`/clients/${codeClient}`);
     return response.data;
   },
 
   /**
    * Toggle client active status
    */
-  async toggleActive(id: number): Promise<ApiResponse<Client>> {
-    const response = await apiClient.patch<ApiResponse<Client>>(`/clients/${id}/toggle-active`);
+  async toggleActive(codeClient: string): Promise<ApiResponse<Client>> {
+    const response = await apiClient.patch<ApiResponse<Client>>(`/clients/${codeClient}/toggle-active`);
     return response.data;
   },
 };

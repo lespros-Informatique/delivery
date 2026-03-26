@@ -1,5 +1,7 @@
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PersonIcon from '@mui/icons-material/Person';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -10,7 +12,6 @@ import AnalyticsIcon from '@mui/icons-material/Analytics';
 import StarIcon from '@mui/icons-material/Star';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
-import PersonIcon from '@mui/icons-material/Person';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SecurityIcon from '@mui/icons-material/Security';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -39,7 +40,7 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/',
-        icon: <SvgIcon><DashboardIcon /></SvgIcon>,
+        icon: <SvgIcon component={DashboardIcon} inheritViewBox />,
         label: 'Dashboard'
       }
     ]
@@ -49,22 +50,22 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/orders',
-        icon: <SvgIcon><ShoppingCartIcon /></SvgIcon>,
+        icon: <SvgIcon component={ShoppingCartIcon} inheritViewBox />,
         label: 'Commandes'
       },
       {
         href: '/products',
-        icon: <SvgIcon><InventoryIcon /></SvgIcon>,
+        icon: <SvgIcon component={InventoryIcon} inheritViewBox />,
         label: 'Produits'
       },
       {
         href: '/categories',
-        icon: <SvgIcon><CategoryIcon /></SvgIcon>,
+        icon: <SvgIcon component={CategoryIcon} inheritViewBox />,
         label: 'Catégories'
       },
       {
         href: '/clients',
-        icon: <SvgIcon><PeopleIcon /></SvgIcon>,
+        icon: <SvgIcon component={PeopleIcon} inheritViewBox />,
         label: 'Clients'
       }
     ]
@@ -74,17 +75,17 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/livreurs',
-        icon: <SvgIcon><LocalShippingIcon /></SvgIcon>,
+        icon: <SvgIcon component={LocalShippingIcon} inheritViewBox />,
         label: 'Livreurs'
       },
       {
         href: '/deliveries',
-        icon: <SvgIcon><LocalShippingIcon /></SvgIcon>,
+        icon: <SvgIcon component={LocalShippingIcon} inheritViewBox />,
         label: 'Livraisons'
       },
       {
         href: '/payments',
-        icon: <SvgIcon><PaymentIcon /></SvgIcon>,
+        icon: <SvgIcon component={PaymentIcon} inheritViewBox />,
         label: 'Paiements'
       }
     ]
@@ -94,37 +95,37 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/users',
-        icon: <SvgIcon><PersonIcon /></SvgIcon>,
+        icon: <SvgIcon component={PersonIcon} inheritViewBox />,
         label: 'Utilisateurs'
       },
       {
         href: '/roles',
-        icon: <SvgIcon><SecurityIcon /></SvgIcon>,
+        icon: <SvgIcon component={SecurityIcon} inheritViewBox />,
         label: 'Rôles'
       },
       {
         href: '/restaurants',
-        icon: <SvgIcon><RestaurantIcon /></SvgIcon>,
+        icon: <SvgIcon component={RestaurantIcon} inheritViewBox />,
         label: 'Restaurants'
       },
       {
         href: '/familles',
-        icon: <SvgIcon><RestaurantMenuIcon /></SvgIcon>,
+        icon: <SvgIcon component={RestaurantMenuIcon} inheritViewBox />,
         label: 'Types cuisine'
       },
       {
         href: '/villes',
-        icon: <SvgIcon><LocationCityIcon /></SvgIcon>,
+        icon: <SvgIcon component={LocationCityIcon} inheritViewBox />,
         label: 'Villes'
       },
       {
         href: '/zones-livraison',
-        icon: <SvgIcon><MapIcon /></SvgIcon>,
+        icon: <SvgIcon component={MapIcon} inheritViewBox />,
         label: 'Zones livraison'
       },
       {
         href: '/promotions',
-        icon: <SvgIcon><LocalOfferIcon /></SvgIcon>,
+        icon: <SvgIcon component={LocalOfferIcon} inheritViewBox />,
         label: 'Promotions'
       }
     ]
@@ -134,12 +135,12 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/gains',
-        icon: <SvgIcon><TrendingUpIcon /></SvgIcon>,
+        icon: <SvgIcon component={TrendingUpIcon} inheritViewBox />,
         label: 'Gains'
       },
       {
         href: '/wallets',
-        icon: <SvgIcon><AccountBalanceWalletIcon /></SvgIcon>,
+        icon: <SvgIcon component={AccountBalanceWalletIcon} inheritViewBox />,
         label: 'Wallets livreurs'
       }
     ]
@@ -149,12 +150,12 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/analytics',
-        icon: <SvgIcon><AnalyticsIcon /></SvgIcon>,
+        icon: <SvgIcon component={AnalyticsIcon} inheritViewBox />,
         label: 'Analytiques'
       },
       {
         href: '/evaluations',
-        icon: <SvgIcon><RateReviewIcon /></SvgIcon>,
+        icon: <SvgIcon component={RateReviewIcon} inheritViewBox />,
         label: 'Évaluations'
       }
     ]
@@ -164,12 +165,22 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: '/settings',
-        icon: <SvgIcon><SettingsIcon /></SvgIcon>,
+        icon: <SvgIcon component={SettingsIcon} inheritViewBox />,
         label: 'Paramètres'
       },
       {
+        href: '/profile',
+        icon: <SvgIcon component={PersonIcon} inheritViewBox />,
+        label: 'Mon Profil'
+      },
+      {
+        href: '/all-notifications',
+        icon: <SvgIcon component={NotificationsActiveIcon} inheritViewBox />,
+        label: 'Notifications'
+      },
+      {
         href: '/icons',
-        icon: <SvgIcon><StarIcon /></SvgIcon>,
+        icon: <SvgIcon component={StarIcon} inheritViewBox />,
         label: 'Icônes'
       }
     ]

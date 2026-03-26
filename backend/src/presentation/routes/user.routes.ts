@@ -3,12 +3,15 @@
  * ===========================================
  * Presentation Layer - Routes
  * Endpoints: /api/v1/users/*
+ * Uses constants from tables.ts for table and column names
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '../../infrastructure/database/prisma.service.js';
+import { TABLES, COLUMNS } from '../../shared/constants/tables.js';
+import { authenticate } from '../middleware/authenticate.middleware.js';
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -16,6 +19,7 @@ const createUserSchema = z.object({
   nomUser: z.string().min(1),
   telephoneUser: z.string().optional(),
   motDePasse: z.string().min(6),
+  etatUsers: z.boolean().optional(),
 });
 
 const updateUserSchema = z.object({
@@ -34,15 +38,6 @@ interface GetUsersQuery {
  * Register routes
  */
 export const userRoutes = async (app: FastifyInstance): Promise<void> => {
-  // Middleware to check auth
-  const authenticate = async (request: FastifyRequest): Promise<void> => {
-    try {
-      await request.jwtVerify();
-    } catch (err) {
-      throw err;
-    }
-  };
-
   // GET /api/v1/users
   app.get(
     '/',
@@ -56,38 +51,33 @@ export const userRoutes = async (app: FastifyInstance): Promise<void> => {
       const searchCondition = search
         ? {
             OR: [
-              { nomUser: { contains: search } },
-              { emailUser: { contains: search } },
+              { [COLUMNS.NOM_USER]: { contains: search } },
+              { [COLUMNS.EMAIL_USER]: { contains: search } },
             ],
           }
         : undefined;
 
-      // Get total count using findMany with _count
-      const usersWithCount = await prisma.user.findMany({
+      // Get total count using Prisma count
+      const total = await prisma.users.count({
         where: searchCondition,
-        select: {
-          idUser: true,
-        },
-        orderBy: { createdAtUser: 'desc' },
       });
 
-      const users = await prisma.user.findMany({
+      // Get paginated users with select for efficiency
+      const users = await prisma.users.findMany({
         where: searchCondition,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAtUser: 'desc' },
+        orderBy: { [COLUMNS.CREATED_AT_USER]: 'desc' },
         select: {
-          idUser: true,
-          codeUser: true,
-          nomUser: true,
-          emailUser: true,
-          telephoneUser: true,
-          etatUsers: true,
-          createdAtUser: true,
+          id_user: true,
+          code_user: true,
+          nom_user: true,
+          email_user: true,
+          telephone_user: true,
+          etat_users: true,
+          created_at_user: true,
         },
       });
-
-      const total = usersWithCount.length;
 
       return reply.send({
         success: true,
@@ -111,11 +101,12 @@ export const userRoutes = async (app: FastifyInstance): Promise<void> => {
     async (request: FastifyRequest<{ Params: { codeUser: string } }>, reply: FastifyReply) => {
       const { codeUser } = request.params;
 
-      const user = await prisma.user.findUnique({
-        where: { codeUser },
+      // Get user by code
+      const user = await prisma.users.findUnique({
+        where: { [COLUMNS.CODE_USER]: codeUser },
         include: {
-          userRoles: {
-            include: { role: true },
+          user_roles: {
+            include: { roles: true },
           },
         },
       });
@@ -139,46 +130,65 @@ export const userRoutes = async (app: FastifyInstance): Promise<void> => {
     '/',
     { preHandler: [authenticate] },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const data = createUserSchema.parse(request.body);
+      try {
+        // Log incoming data for debugging
+        console.log('Creating user with data:', JSON.stringify(request.body));
+        
+        const data = createUserSchema.parse(request.body);
 
-      // Check if email exists
-      const existing = await prisma.user.findUnique({
-        where: { emailUser: data.emailUser },
-      });
+        // Check if email exists
+        const existing = await prisma.users.findUnique({
+          where: { email_user: data.emailUser },
+        });
 
-      if (existing) {
-        return reply.status(400).send({
+        if (existing) {
+          return reply.status(400).send({
+            success: false,
+            message: 'Email déjà utilisé',
+          });
+        }
+
+        // Generate code using constant prefix
+        const count = await prisma.users.count();
+        const codeUser = `USER_${(count + 1).toString().padStart(4, '0')}`;
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(data.motDePasse, 12);
+
+        const user = await prisma.users.create({
+          data: {
+            code_user: codeUser,
+            email_user: data.emailUser,
+            nom_user: data.nomUser,
+            telephone_user: data.telephoneUser || null,
+            mot_de_passe: hashedPassword,
+            etat_users: 1,
+          },
+        });
+
+        return reply.status(201).send({
+          success: true,
+          data: {
+            id_user: user.id_user,
+            code_user: user.code_user,
+            email_user: user.email_user,
+            nom_user: user.nom_user,
+          },
+        });
+      } catch (error: unknown) {
+        console.error('Error creating user:', error);
+        if (error instanceof z.ZodError) {
+          return reply.status(400).send({
+            success: false,
+            message: 'Validation failed',
+            errors: error.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+          });
+        }
+        return reply.status(500).send({
           success: false,
-          message: 'Email already exists',
+          message: error instanceof Error ? error.message : 'Erreur serveur',
         });
       }
-
-      // Generate code
-      const count = await prisma.user.count();
-      const codeUser = `USER_${(count + 1).toString().padStart(4, '0')}`;
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(data.motDePasse, 12);
-
-      const user = await prisma.user.create({
-        data: {
-          codeUser,
-          emailUser: data.emailUser,
-          nomUser: data.nomUser,
-          telephoneUser: data.telephoneUser || null,
-          motDePasse: hashedPassword,
-        },
-      });
-
-      return reply.status(201).send({
-        success: true,
-        data: {
-          idUser: user.idUser,
-          codeUser: user.codeUser,
-          emailUser: user.emailUser,
-          nomUser: user.nomUser,
-        },
-      });
     }
   );
 
@@ -190,9 +200,15 @@ export const userRoutes = async (app: FastifyInstance): Promise<void> => {
       const { codeUser } = request.params;
       const data = updateUserSchema.parse(request.body);
 
-      const user = await prisma.user.update({
-        where: { codeUser },
-        data,
+      // Build update data using column constants
+      const updateData: Record<string, unknown> = {};
+      if (data.nomUser) updateData[COLUMNS.NOM_USER] = data.nomUser;
+      if (data.telephoneUser) updateData[COLUMNS.TELEPHONE_USER] = data.telephoneUser;
+      if (data.etatUsers !== undefined) updateData[COLUMNS.ETAT_USERS] = data.etatUsers ? 1 : 0;
+
+      const user = await prisma.users.update({
+        where: { [COLUMNS.CODE_USER]: codeUser },
+        data: updateData,
       });
 
       return reply.send({
@@ -209,8 +225,8 @@ export const userRoutes = async (app: FastifyInstance): Promise<void> => {
     async (request: FastifyRequest<{ Params: { codeUser: string } }>, reply: FastifyReply) => {
       const { codeUser } = request.params;
 
-      await prisma.user.delete({
-        where: { codeUser },
+      await prisma.users.delete({
+        where: { [COLUMNS.CODE_USER]: codeUser },
       });
 
       return reply.send({

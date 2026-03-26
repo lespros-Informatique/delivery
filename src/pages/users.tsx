@@ -9,7 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
 import { FormModal } from 'src/components/modal/form-modal';
 import { UserForm } from 'src/components/forms/user-form';
-import { usersService, User } from 'src/lib/api';
+import { usersService, User, CreateUserRequest, UpdateUserRequest } from 'src/lib/api';
 
 // Options d'actions pour la liste des utilisateurs
 const actionOptions: ActionOption[] = [
@@ -32,7 +32,7 @@ const columns: ColumnConfig[] = [
     minWidth: 150 
   },
   { 
-    field: 'email', 
+    field: 'emailUser', 
     headerName: 'EMAIL', 
     flex: 1, 
     minWidth: 180 
@@ -43,7 +43,7 @@ const columns: ColumnConfig[] = [
     width: 150 
   },
   { 
-    field: 'createdAt', 
+    field: 'createdAtUser', 
     headerName: 'DATE CRÉATION', 
     width: 160,
     valueFormatter: (value: any) => {
@@ -72,8 +72,8 @@ const Page = () => {
       } else {
         setError(response.message || 'Erreur lors du chargement des utilisateurs');
       }
-    } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ const Page = () => {
   // Préparer les données pour le DataTable
   const rows = users.map((u) => ({
     ...u,
-    etat_users: u.active ? 'actif' : 'inactif'
+    etat_users: u.etatUsers ? 'actif' : 'inactif'
   }));
 
   // Gestionnaire de clic sur les actions
@@ -97,32 +97,32 @@ const Page = () => {
       setSelectedUser(row);
       setModalOpen(true);
     } else if (action === 'delete') {
-      handleDelete(row.id);
+      handleDelete(row.codeUser);
     }
   };
 
   // Supprimer un utilisateur
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (codeUser: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) {
       try {
-        const response = await usersService.delete(id);
+        const response = await usersService.delete(codeUser);
         if (response.success) {
           loadUsers();
         } else {
           setError(response.message || 'Erreur lors de la suppression');
         }
-      } catch (err: any) {
-        setError(err.message || 'Erreur lors de la suppression');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
       }
     }
   };
 
   // Soumission du formulaire
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: unknown) => {
     try {
       if (selectedUser) {
         // Modifier un utilisateur existant
-        const response = await usersService.update(selectedUser.id, data);
+        const response = await usersService.update(selectedUser.codeUser, data as UpdateUserRequest);
         if (response.success) {
           setModalOpen(false);
           setSelectedUser(null);
@@ -132,7 +132,7 @@ const Page = () => {
         }
       } else {
         // Créer un nouvel utilisateur
-        const response = await usersService.create(data);
+        const response = await usersService.create(data as CreateUserRequest);
         if (response.success) {
           setModalOpen(false);
           loadUsers();
@@ -140,8 +140,8 @@ const Page = () => {
           setError(response.message || 'Erreur lors de la création');
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'opération');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'opération');
     }
   };
 
@@ -223,13 +223,13 @@ const Page = () => {
             >
               <UserForm 
                 initialData={selectedUser ? {
-                  code_user: selectedUser.codeUser,
-                  nom_user: selectedUser.nomUser,
-                  email_user: selectedUser.email,
-                  telephone_user: selectedUser.telephoneUser,
-                  etat_users: selectedUser.active
+                  nomUser: selectedUser.nomUser,
+                  emailUser: selectedUser.emailUser,
+                  telephoneUser: selectedUser.telephoneUser,
+                  etatUsers: selectedUser.etatUsers
                 } : undefined}
                 onSubmit={handleSubmit}
+                isEdit={!!selectedUser}
               />
             </FormModal>
           </Stack>

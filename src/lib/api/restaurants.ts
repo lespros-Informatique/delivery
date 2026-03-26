@@ -85,18 +85,10 @@ export const restaurantsService = {
   },
 
   /**
-   * Get restaurant by ID
-   */
-  async getById(id: number): Promise<ApiResponse<Restaurant>> {
-    const response = await apiClient.get<ApiResponse<Restaurant>>(`/restaurants/${id}`);
-    return response.data;
-  },
-
-  /**
    * Get restaurant by code
    */
   async getByCode(code: string): Promise<ApiResponse<Restaurant>> {
-    const response = await apiClient.get<ApiResponse<Restaurant>>(`/restaurants/code/${code}`);
+    const response = await apiClient.get<ApiResponse<Restaurant>>(`/restaurants/${code}`);
     return response.data;
   },
 
@@ -111,24 +103,24 @@ export const restaurantsService = {
   /**
    * Update restaurant
    */
-  async update(id: number, data: UpdateRestaurantRequest): Promise<ApiResponse<Restaurant>> {
-    const response = await apiClient.put<ApiResponse<Restaurant>>(`/restaurants/${id}`, data);
+  async update(codeRestaurant: string, data: UpdateRestaurantRequest): Promise<ApiResponse<Restaurant>> {
+    const response = await apiClient.put<ApiResponse<Restaurant>>(`/restaurants/${codeRestaurant}`, data);
     return response.data;
   },
 
   /**
    * Delete restaurant
    */
-  async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await apiClient.delete<ApiResponse<void>>(`/restaurants/${id}`);
+  async delete(codeRestaurant: string): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete<ApiResponse<void>>(`/restaurants/${codeRestaurant}`);
     return response.data;
   },
 
   /**
    * Toggle restaurant active status
    */
-  async toggleActive(id: number): Promise<ApiResponse<Restaurant>> {
-    const response = await apiClient.patch<ApiResponse<Restaurant>>(`/restaurants/${id}/toggle-active`);
+  async toggleActive(codeRestaurant: string): Promise<ApiResponse<Restaurant>> {
+    const response = await apiClient.patch<ApiResponse<Restaurant>>(`/restaurants/${codeRestaurant}/toggle-active`);
     return response.data;
   },
 };

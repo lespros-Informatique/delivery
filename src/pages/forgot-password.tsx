@@ -95,7 +95,7 @@ const ForgotPasswordPage = () => {
                 <Button
                   variant="outlined"
                   startIcon={<ArrowBackIcon />}
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/delivery/login')}
                   fullWidth
                 >
                   Retour à la connexion
@@ -245,7 +245,7 @@ const ForgotPasswordPage = () => {
                 <Link
                   component="button"
                   variant="body2"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/delivery/login')}
                   sx={{ 
                     display: 'inline-flex', 
                     alignItems: 'center',

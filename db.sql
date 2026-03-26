@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mer. 25 mars 2026 à 12:14
+-- Généré le : mer. 25 mars 2026 à 22:15
 -- Version du serveur : 9.1.0
 -- Version de PHP : 8.3.14
 
@@ -336,21 +336,20 @@ CREATE TABLE IF NOT EXISTS `logs_activite` (
 DROP TABLE IF EXISTS `notifications`;
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id_notification` int NOT NULL AUTO_INCREMENT,
-  `code_notification` varchar(50) NOT NULL,
-  `user_code` varchar(50) DEFAULT NULL,
-  `livreur_code` varchar(50) DEFAULT NULL,
-  `client_code` varchar(50) DEFAULT NULL,
+  `code_notification` varchar(50) DEFAULT NULL,
+  `target_code` varchar(50) DEFAULT NULL,
+  `target_type` enum('user','livreur','client') DEFAULT NULL,
   `type_notification` enum('commande','livraison','paiement','promotion','system') NOT NULL,
-  `titre` varchar(200) NOT NULL,
-  `message` text NOT NULL,
-  `lu` tinyint DEFAULT '0',
+  `titre_notification` varchar(200) NOT NULL,
+  `message_notification` text NOT NULL,
+  `canal_notification` enum('push','email','sms','in_app') DEFAULT 'in_app',
+  `priorite_notification` enum('basse','moyenne','haute','urgente') DEFAULT 'moyenne',
+  `is_read` tinyint(1) DEFAULT '0',
+  `link_notification` varchar(255) DEFAULT NULL,
   `created_at_notification` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_notification`),
-  UNIQUE KEY `code_notification` (`code_notification`),
-  KEY `user_code` (`user_code`),
-  KEY `livreur_code` (`livreur_code`),
-  KEY `client_code` (`client_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `code_notification` (`code_notification`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -746,10 +745,10 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 INSERT INTO `users` (`id_user`, `code_user`, `nom_user`, `email_user`, `telephone_user`, `mot_de_passe`, `etat_users`, `created_at_user`, `updated_at_user`, `token_user`) VALUES
-(1, 'USR002', 'Admin Test', 'admin@test.com', '0700000001', '$2b$10$N/ripa5YsyJjzn4NSBUrWur4z88yA3hldEJuxEQRfU1tX2LxUWP6.', 1, '2026-03-25 10:33:32', '2026-03-25 10:33:32', NULL),
-(2, 'USER_0002', 'Test User', 'test@test.com', NULL, '$2b$12$ABeGSLsygp8Qy1JVmHQb5.AOQzPVOldwae7EWE2Gge5JBQtcz/qyS', 1, '2026-03-25 11:59:40', '2026-03-25 11:59:40', NULL),
-(3, 'USER_0003', 'Test User 2', 'test2@test.com', NULL, '$2b$12$T3Cme30/Igb81MLzCULS7u/vxSQrDMdFNvVgfrvMfN0SrTlmBHMH2', 1, '2026-03-25 12:01:07', '2026-03-25 12:01:07', NULL),
-(4, 'USER_0004', 'Test User 3', 'test3@test.com', NULL, '$2b$12$5lJ9YkR3H9TOZCqy0eYNRevAAJXUDoBzbe16gfMHq2KqAgT/V0m9C', 1, '2026-03-25 12:09:17', '2026-03-25 12:09:17', NULL);
+(1, 'USR002', 'Admin Test', 'admin@test.com', '0700000001', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 1, '2026-03-25 10:33:32', '2026-03-25 10:33:32', NULL),
+(2, 'USER_0002', 'Test User', 'test@test.com', '0112264534', '$2b$12$ABeGSLsygp8Qy1JVmHQb5.AOQzPVOldwae7EWE2Gge5JBQtcz/qyS', 1, '2026-03-25 11:59:40', '2026-03-25 11:59:40', NULL),
+(3, 'USER_0003', 'Test User 2', 'test2@test.com', '0712345566', '$2b$12$T3Cme30/Igb81MLzCULS7u/vxSQrDMdFNvVgfrvMfN0SrTlmBHMH2', 1, '2026-03-25 12:01:07', '2026-03-25 12:01:07', NULL),
+(4, 'USER_0004', 'Test User 3', 'test3@test.com', '189988769', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 1, '2026-03-25 12:09:17', '2026-03-25 12:09:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -956,14 +955,6 @@ ALTER TABLE `livraison_positions`
 --
 ALTER TABLE `livreurs`
   ADD CONSTRAINT `fk_livreurs_restaurant` FOREIGN KEY (`restaurant_code`) REFERENCES `restaurants` (`code_restaurant`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `notifications`
---
-ALTER TABLE `notifications`
-  ADD CONSTRAINT `fk_notifications_client` FOREIGN KEY (`client_code`) REFERENCES `clients` (`code_client`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_notifications_livreur` FOREIGN KEY (`livreur_code`) REFERENCES `livreurs` (`code_livreur`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_code`) REFERENCES `users` (`code_user`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `paiements`

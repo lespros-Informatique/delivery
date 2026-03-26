@@ -84,10 +84,12 @@ export const FormModal: React.FC<FormModalProps> = ({
           justifyContent: 'space-between',
           pb: 1,
           borderBottom: '1px solid',
-          borderColor: 'divider'
+          borderColor: 'divider',
+          m: 0,
+          p: 2
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
+        <Typography variant="h6" component="div" fontWeight={600}>
           {title}
         </Typography>
         <IconButton onClick={onClose} size="small">

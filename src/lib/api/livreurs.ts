@@ -85,10 +85,10 @@ export const livreursService = {
   },
 
   /**
-   * Get livreur by ID
+   * Get livreur by code
    */
-  async getById(id: number): Promise<ApiResponse<Livreur>> {
-    const response = await apiClient.get<ApiResponse<Livreur>>(`/livreurs/${id}`);
+  async getByCode(code: string): Promise<ApiResponse<Livreur>> {
+    const response = await apiClient.get<ApiResponse<Livreur>>(`/livreurs/${code}`);
     return response.data;
   },
 
@@ -103,32 +103,32 @@ export const livreursService = {
   /**
    * Update livreur
    */
-  async update(id: number, data: UpdateLivreurRequest): Promise<ApiResponse<Livreur>> {
-    const response = await apiClient.put<ApiResponse<Livreur>>(`/livreurs/${id}`, data);
+  async update(codeLivreur: string, data: UpdateLivreurRequest): Promise<ApiResponse<Livreur>> {
+    const response = await apiClient.put<ApiResponse<Livreur>>(`/livreurs/${codeLivreur}`, data);
     return response.data;
   },
 
   /**
    * Delete livreur
    */
-  async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await apiClient.delete<ApiResponse<void>>(`/livreurs/${id}`);
+  async delete(codeLivreur: string): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete<ApiResponse<void>>(`/livreurs/${codeLivreur}`);
     return response.data;
   },
 
   /**
    * Toggle livreur active status
    */
-  async toggleActive(id: number): Promise<ApiResponse<Livreur>> {
-    const response = await apiClient.patch<ApiResponse<Livreur>>(`/livreurs/${id}/toggle-active`);
+  async toggleActive(codeLivreur: string): Promise<ApiResponse<Livreur>> {
+    const response = await apiClient.patch<ApiResponse<Livreur>>(`/livreurs/${codeLivreur}/toggle-active`);
     return response.data;
   },
 
   /**
    * Toggle livreur availability
    */
-  async toggleDisponible(id: number): Promise<ApiResponse<Livreur>> {
-    const response = await apiClient.patch<ApiResponse<Livreur>>(`/livreurs/${id}/toggle-disponible`);
+  async toggleDisponible(codeLivreur: string): Promise<ApiResponse<Livreur>> {
+    const response = await apiClient.patch<ApiResponse<Livreur>>(`/livreurs/${codeLivreur}/toggle-disponible`);
     return response.data;
   },
 };

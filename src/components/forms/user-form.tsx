@@ -2,52 +2,77 @@ import { useState } from 'react';
 import {
   Box,
   TextField,
-  MenuItem,
   Grid,
   FormControlLabel,
   Switch,
   InputAdornment
 } from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LockIcon from '@mui/icons-material/Lock';
 
+/**
+ * Interface pour les données du formulaire utilisateur
+ * Le code est généré par le backend, pas besoin de le saisir
+ */
 interface UserFormData {
-  code_user: string;
-  nom_user: string;
-  prenom_user: string;
-  email_user: string;
-  telephone_user: string;
-  etat_users: boolean;
+  nomUser: string;
+  emailUser: string;
+  telephoneUser?: string;
+  motDePasse?: string;
+  etatUsers: boolean;
 }
 
 interface UserFormProps {
   initialData?: Partial<UserFormData>;
   onSubmit: (data: UserFormData) => void;
+  isEdit?: boolean;
 }
-
-const generateUserCode = () => {
-  const random = Math.floor(Math.random() * 10000);
-  return `USER_${random.toString().padStart(4, '0')}`;
-};
 
 export function UserForm({ 
   initialData, 
-  onSubmit 
+  onSubmit,
+  isEdit = false
 }: UserFormProps) {
   const [formData, setFormData] = useState<UserFormData>({
-    code_user: initialData?.code_user || generateUserCode(),
-    nom_user: initialData?.nom_user || '',
-    prenom_user: initialData?.prenom_user || '',
-    email_user: initialData?.email_user || '',
-    telephone_user: initialData?.telephone_user || '',
-    etat_users: initialData?.etat_users ?? true
+    nomUser: initialData?.nomUser || '',
+    emailUser: initialData?.emailUser || '',
+    telephoneUser: initialData?.telephoneUser || '',
+    motDePasse: '',
+    etatUsers: initialData?.etatUsers ?? true
   });
 
-  const handleChange = (field: keyof UserFormData, value: any) => {
+  const handleChange = (field: keyof UserFormData, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    console.log('Form data before submit:', formData);
+    
+    // Validation du mot de passe pour la création
+    if (!isEdit && (!formData.motDePasse || formData.motDePasse.length < 6)) {
+      alert('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+    
+    // Préparer les données à envoyer
+    const submitData: Record<string, unknown> = {
+      nomUser: formData.nomUser,
+      emailUser: formData.emailUser,
+      telephoneUser: formData.telephoneUser || undefined,
+      etatUsers: formData.etatUsers,
+    };
+    
+    // Ajouter le mot de passe seulement si présent et非edit
+    if (!isEdit && formData.motDePasse) {
+      submitData.motDePasse = formData.motDePasse;
+    }
+    
+    console.log('Submit data:', submitData);
+    onSubmit(submitData as unknown as UserFormData);
   };
 
   return (
@@ -58,35 +83,18 @@ export function UserForm({
             fullWidth
             variant="outlined"
             size="medium"
-            label="Code utilisateur"
-            value={formData.code_user}
-            onChange={(e) => handleChange('code_user', e.target.value)}
+            label="Nom complet"
+            value={formData.nomUser}
+            onChange={(e) => handleChange('nomUser', e.target.value)}
             required
-            disabled
-            helperText="Code généré automatiquement"
-          />
-        </Grid>
-        
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            size="medium"
-            label="Nom"
-            value={formData.nom_user}
-            onChange={(e) => handleChange('nom_user', e.target.value)}
-            required
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            size="medium"
-            label="Prénom"
-            value={formData.prenom_user}
-            onChange={(e) => handleChange('prenom_user', e.target.value)}
+            placeholder="Entrez le nom complet"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
         </Grid>
 
@@ -96,9 +104,16 @@ export function UserForm({
             variant="outlined"
             size="medium"
             label="Téléphone"
-            value={formData.telephone_user}
-            onChange={(e) => handleChange('telephone_user', e.target.value)}
-            required
+            value={formData.telephoneUser || ''}
+            onChange={(e) => handleChange('telephoneUser', e.target.value)}
+            placeholder="Ex: +2250700000000"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PhoneIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
         </Grid>
 
@@ -109,18 +124,74 @@ export function UserForm({
             size="medium"
             label="Email"
             type="email"
-            value={formData.email_user}
-            onChange={(e) => handleChange('email_user', e.target.value)}
+            value={formData.emailUser}
+            onChange={(e) => handleChange('emailUser', e.target.value)}
             required
+            placeholder="exemple@email.com"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
         </Grid>
+
+        {/* Mot de passe: seulement pour la création */}
+        {!isEdit && (
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="medium"
+              label="Mot de passe"
+              type="password"
+              value={formData.motDePasse || ''}
+              onChange={(e) => handleChange('motDePasse', e.target.value)}
+              required={!isEdit}
+              placeholder="Minimum 6 caractères"
+              helperText="Obligatoire pour la création"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+        )}
+
+        {isEdit && (
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="medium"
+              label="Nouveau mot de passe"
+              type="password"
+              value={formData.motDePasse || ''}
+              onChange={(e) => handleChange('motDePasse', e.target.value)}
+              placeholder="Laisser vide pour garder l'actuel"
+              helperText="Optionnel: laissez vide pour conserver le mot de passe actuel"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+        )}
 
         <Grid size={{ xs: 12 }}>
           <FormControlLabel
             control={
               <Switch
-                checked={formData.etat_users}
-                onChange={(e) => handleChange('etat_users', e.target.checked)}
+                checked={formData.etatUsers}
+                onChange={(e) => handleChange('etatUsers', e.target.checked)}
                 color="primary"
               />
             }

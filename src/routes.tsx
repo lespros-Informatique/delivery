@@ -24,6 +24,8 @@ const PaymentDetailPage = lazy(() => import('./pages/payment-detail'));
 const AnalyticsPage = lazy(() => import('./pages/analytics'));
 const SettingsPage = lazy(() => import('./pages/settings'));
 const IconsPage = lazy(() => import('./pages/icons'));
+const ProfilePage = lazy(() => import('./pages/profile'));
+const AllNotificationsPage = lazy(() => import('./pages/all-notifications'));
 const UsersPage = lazy(() => import('./pages/users'));
 const UserDetailPage = lazy(() => import('./pages/user-detail'));
 const RestaurantsPage = lazy(() => import('./pages/restaurants'));
@@ -332,6 +334,16 @@ export const routes: RouteObject[] = [
       {
         path: 'icons',
         element: <IconsPage />
+      },
+      // Profil utilisateur
+      {
+        path: 'profile',
+        element: <ProfilePage />
+      },
+      // Toutes les notifications
+      {
+        path: 'all-notifications',
+        element: <AllNotificationsPage />
       }
     ]
   },

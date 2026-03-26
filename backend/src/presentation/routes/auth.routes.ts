@@ -8,6 +8,7 @@
  * - Access token (15min) + Refresh token (7 days)
  * - Token refresh endpoint
  * - Secure logout
+ * Uses constants from tables.ts for table and column names
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
@@ -15,6 +16,8 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '../../infrastructure/database/prisma.service.js';
 import { logger } from '../../shared/utils/logger.util.js';
+import { TABLES, COLUMNS } from '../../shared/constants/tables.js';
+import { authenticate } from '../middleware/authenticate.middleware.js';
 
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
@@ -85,26 +88,6 @@ function clearAuthCookies(reply: FastifyReply) {
  * Register routes
  */
 export const authRoutes = async (app: FastifyInstance): Promise<void> => {
-  // Local authenticate function
-  const authenticate = async (request: FastifyRequest): Promise<void> => {
-    try {
-      // Try to get token from cookie first, then Authorization header
-      const accessToken = request.headers.cookie?.match(/access_token=([^;]+)/)?.[1];
-      const authHeader = request.headers.authorization;
-      
-      if (accessToken) {
-        request.headers.authorization = `Bearer ${accessToken}`;
-      } else if (authHeader?.startsWith('Bearer ')) {
-        // Already has Authorization header
-      } else {
-        throw new Error('No token provided');
-      }
-      
-      await request.jwtVerify();
-    } catch (err) {
-      throw err;
-    }
-  };
 
   // POST /api/v1/auth/register
   app.post(
@@ -115,7 +98,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
 
         // Check if user exists using Prisma
         const existingUser = await prisma.users.findUnique({
-          where: { email_user: data.email },
+          where: { [COLUMNS.EMAIL_USER]: data.email },
         });
 
         if (existingUser) {
@@ -135,12 +118,12 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         // Create user
         const newUser = await prisma.users.create({
           data: {
-            code_user: codeUser,
-            email_user: data.email,
-            nom_user: data.nomUser,
-            telephone_user: data.telephoneUser || null,
-            mot_de_passe: hashedPassword,
-            etat_users: 1,
+            [COLUMNS.CODE_USER]: codeUser,
+            [COLUMNS.EMAIL_USER]: data.email,
+            [COLUMNS.NOM_USER]: data.nomUser,
+            [COLUMNS.TELEPHONE_USER]: data.telephoneUser || null,
+            [COLUMNS.MOT_DE_PASSE]: hashedPassword,
+            [COLUMNS.ETAT_USERS]: 1,
           },
         });
 
@@ -187,7 +170,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
 
         // Find user using Prisma
         const user = await prisma.users.findUnique({
-          where: { email_user: data.email },
+          where: { [COLUMNS.EMAIL_USER]: data.email },
         });
 
         if (!user) {
@@ -218,7 +201,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         // Get roles from database
         const userRoles = await prisma.user_roles.findMany({
           where: {
-            user_code: user.code_user,
+            [COLUMNS.USER_CODE]: user.code_user,
             etat_user_role: 1,
           },
           include: {
@@ -307,7 +290,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         // Get roles
         const userRoles = await prisma.user_roles.findMany({
           where: {
-            user_code: user.code_user,
+            [COLUMNS.USER_CODE]: user.code_user,
             etat_user_role: 1,
           },
           include: {
@@ -386,7 +369,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         // Get roles
         const userRoles = await prisma.user_roles.findMany({
           where: {
-            user_code: dbUser.code_user,
+            [COLUMNS.USER_CODE]: dbUser.code_user,
             etat_user_role: 1,
           },
           include: {

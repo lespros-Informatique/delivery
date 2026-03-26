@@ -169,8 +169,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.clearCurrentUser();
     setUser(null);
     
-    // Redirect to login
-    window.location.href = '/login';
+    // Redirect to login (use relative path with base)
+    window.location.href = '/delivery/login';
   }, [refreshTimer]);
 
   const value: UseAuthReturn = {

@@ -41,23 +41,25 @@ const KPICard = ({ title, value, icon, trend, color = 'primary' }: KPICardProps)
 
   return (
     <Card sx={{ height: '100%', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 } }}>
-      <CardContent sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-          <Avatar sx={{ bgcolor: colorValue, width: 48, height: 48 }}>
-            <SvgIcon sx={{ color: 'white' }}>{icon}</SvgIcon>
-          </Avatar>
-          {trend && (
-            <Chip 
-              icon={<TrendingUpIcon fontSize="small" />} 
-              label={trend} 
-              color="success" 
-              size="small" 
-              variant="filled"
-            />
-          )}
-        </Stack>
-        <Typography variant="h4" fontWeight={700}>{value}</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>{title}</Typography>
+      <CardContent sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ p: 1, borderRadius: 1, bgcolor: `${color}.light`, color: `${color}.main` }}>
+          {icon}
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="body2" color="text.secondary">{title}</Typography>
+            {trend && (
+              <Chip 
+                icon={<TrendingUpIcon fontSize="small" />} 
+                label={trend} 
+                color="success" 
+                size="small" 
+                variant="filled"
+              />
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={0.5}>{value}</Typography>
+        </Box>
       </CardContent>
     </Card>
   );
@@ -219,12 +221,14 @@ const Page = () => {
                   onClick={() => navigate('/analytics')}
                 >
                   Voir analytiques
+                  
                 </Button>
               </Stack>
             </Stack>
 
             {/* Cartes KPI - Row 1 */}
             <Grid container spacing={3}>
+              
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <KPICard title="Commandes aujourd'hui" value={todayCommandes} icon={<ShoppingBagIcon />} color="primary" />
               </Grid>

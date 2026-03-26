@@ -5,34 +5,31 @@
  */
 
 import { apiClient, ApiResponse } from './client';
+import axios from 'axios';
+import { mapArrayToCamelCase } from './mapper';
 
 export interface User {
-  id: number;
+  idUser: number;
   codeUser: string;
-  email: string;
+  emailUser: string;
   nomUser: string;
   telephoneUser?: string;
-  roles: string[];
-  active: boolean;
-  lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
+  etatUsers: boolean;
+  createdAtUser: string;
+  updatedAtUser?: string;
 }
 
 export interface CreateUserRequest {
-  email: string;
-  password: string;
+  emailUser: string;
   nomUser: string;
   telephoneUser?: string;
-  roles?: string[];
+  motDePasse: string;
 }
 
 export interface UpdateUserRequest {
-  email?: string;
   nomUser?: string;
   telephoneUser?: string;
-  roles?: string[];
-  active?: boolean;
+  etatUsers?: boolean;
 }
 
 export interface PaginationParams {
@@ -40,6 +37,13 @@ export interface PaginationParams {
   limit?: number;
   search?: string;
   role?: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -59,25 +63,30 @@ export const usersService = {
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.limit) queryParams.set('limit', params.limit.toString());
     if (params?.search) queryParams.set('search', params.search);
-    if (params?.role) queryParams.set('role', params.role);
 
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<User>>>(`/users?${queryParams}`);
-    return response.data;
-  },
-
-  /**
-   * Get user by ID
-   */
-  async getById(id: number): Promise<ApiResponse<User>> {
-    const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
-    return response.data;
+    const response = await apiClient.get<ApiResponse<{ users: User[], pagination: PaginationMeta }>>(`/users?${queryParams}`);
+    
+    // Map users from snake_case to camelCase using the mapper
+    const users = mapArrayToCamelCase(response.data.data?.users as unknown as Record<string, unknown>[] || []) as unknown as User[];
+    
+    return {
+      success: response.data.success,
+      data: {
+        data: users,
+        total: response.data.data?.pagination?.total || 0,
+        page: response.data.data?.pagination?.page || 1,
+        limit: response.data.data?.pagination?.limit || 10,
+        totalPages: response.data.data?.pagination?.totalPages || 0,
+      },
+      message: response.data.message
+    };
   },
 
   /**
    * Get user by code
    */
   async getByCode(code: string): Promise<ApiResponse<User>> {
-    const response = await apiClient.get<ApiResponse<User>>(`/users/code/${code}`);
+    const response = await apiClient.get<ApiResponse<User>>(`/users/${code}`);
     return response.data;
   },
 
@@ -92,24 +101,24 @@ export const usersService = {
   /**
    * Update user
    */
-  async update(id: number, data: UpdateUserRequest): Promise<ApiResponse<User>> {
-    const response = await apiClient.put<ApiResponse<User>>(`/users/${id}`, data);
+  async update(codeUser: string, data: UpdateUserRequest): Promise<ApiResponse<User>> {
+    const response = await apiClient.put<ApiResponse<User>>(`/users/${codeUser}`, data);
     return response.data;
   },
 
   /**
    * Delete user
    */
-  async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await apiClient.delete<ApiResponse<void>>(`/users/${id}`);
+  async delete(codeUser: string): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete<ApiResponse<void>>(`/users/${codeUser}`);
     return response.data;
   },
 
   /**
    * Toggle user active status
    */
-  async toggleActive(id: number): Promise<ApiResponse<User>> {
-    const response = await apiClient.patch<ApiResponse<User>>(`/users/${id}/toggle-active`);
+  async toggleActive(codeUser: string): Promise<ApiResponse<User>> {
+    const response = await apiClient.patch<ApiResponse<User>>(`/users/${codeUser}/toggle-active`);
     return response.data;
   },
 };

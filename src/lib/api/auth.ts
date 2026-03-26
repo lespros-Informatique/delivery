@@ -103,9 +103,18 @@ export const authService = {
   /**
    * Store user in localStorage (for UI state only)
    * Note: This is for display purposes only, not for authentication
+   * Authentication is handled via HTTP-only cookies
    */
   setCurrentUser(user: AuthUser): void {
     localStorage.setItem('woli_user', JSON.stringify(user));
+  },
+
+  /**
+   * Store access token in localStorage
+   * Note: This is for API requests that require Authorization header
+   */
+  setToken(token: string): void {
+    localStorage.setItem('woli_token', token);
   },
 
   /**

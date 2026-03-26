@@ -12,7 +12,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
+import LockIcon from '@mui/icons-material/Lock';
 import { usersService, User } from 'src/lib/api';
 import { PageContainer } from 'src/components/page-container';
 
@@ -53,7 +53,7 @@ const Page = () => {
     
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) {
       try {
-        const response = await usersService.delete(user.id);
+        const response = await usersService.delete(user.codeUser);
         if (response.success) {
           navigate('/users');
         } else {
@@ -70,7 +70,7 @@ const Page = () => {
     if (!user) return;
     
     try {
-      const response = await usersService.toggleActive(user.id);
+      const response = await usersService.toggleActive(user.codeUser);
       if (response.success && response.data) {
         setUser(response.data);
       } else {
@@ -148,7 +148,7 @@ const Page = () => {
                 <Button 
                   variant="outlined" 
                   startIcon={<EditIcon />}
-                  onClick={() => console.log('Edit', user.codeUser)}
+                  onClick={() => navigate(`/users?edit=${user.codeUser}`)}
                 >
                   Modifier
                 </Button>
@@ -184,20 +184,12 @@ const Page = () => {
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1}>
                   <Chip 
-                    label={user.active ? 'Actif' : 'Inactif'}
-                    color={user.active ? 'success' : 'error'}
+                    label={user.etatUsers ? 'Actif' : 'Inactif'}
+                    color={user.etatUsers ? 'success' : 'error'}
                     size="small"
                     onClick={handleToggleActive}
                     style={{ cursor: 'pointer' }}
                   />
-                  {user.roles?.map((role, idx) => (
-                    <Chip 
-                      key={idx}
-                      label={role}
-                      variant="outlined"
-                      size="small"
-                    />
-                  ))}
                 </Stack>
               </Box>
               <Stack direction="row" spacing={3}>
@@ -212,7 +204,7 @@ const Page = () => {
                 <Box sx={{ textAlign: 'center' }}>
                   <EmailIcon color="primary" />
                   <Typography variant="caption" display="block">
-                    {user.email}
+                    {user.emailUser}
                   </Typography>
                 </Box>
               </Stack>
@@ -227,31 +219,35 @@ const Page = () => {
                   <SupervisorAccountIcon />
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Rôles</Typography>
-                  <Typography variant="h5" fontWeight={700}>{user.roles?.length || 0}</Typography>
+                  <Typography variant="body2" color="text.secondary">Statut</Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {user.etatUsers ? 'Actif' : 'Inactif'}
+                  </Typography>
                 </Box>
               </Card>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'success.light', color: 'success.main' }}>
-                  <RestaurantIcon />
+                  <CalendarTodayIcon />
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Permissions</Typography>
-                  <Typography variant="h5" fontWeight={700}>{user.permissions?.length || 0}</Typography>
+                  <Typography variant="body2" color="text.secondary">Date création</Typography>
+                  <Typography variant="h6" fontWeight={500}>
+                    {user.createdAtUser ? new Date(user.createdAtUser).toLocaleDateString('fr-FR') : 'N/A'}
+                  </Typography>
                 </Box>
               </Card>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'warning.light', color: 'warning.main' }}>
-                  <CalendarTodayIcon />
+                  <PhoneIcon />
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Dernière connexion</Typography>
+                  <Typography variant="body2" color="text.secondary">Téléphone</Typography>
                   <Typography variant="h6" fontWeight={500}>
-                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('fr-FR') : 'Jamais'}
+                    {user.telephoneUser || 'Non défini'}
                   </Typography>
                 </Box>
               </Card>
@@ -259,74 +255,14 @@ const Page = () => {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'info.light', color: 'info.main' }}>
-                  <PhoneIcon />
+                  <LockIcon />
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Statut</Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {user.active ? 'Actif' : 'Inactif'}
+                  <Typography variant="body2" color="text.secondary">Sécurité</Typography>
+                  <Typography variant="h6" fontWeight={500}>
+                    Mot de passe hashé
                   </Typography>
                 </Box>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Section Rôles et Permissions */}
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card sx={{ p: 3, height: '100%' }}>
-                <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                  <SupervisorAccountIcon color="primary" />
-                  <Typography variant="h6" fontWeight={600}>Rôles assignés</Typography>
-                </Stack>
-                
-                <Stack spacing={2}>
-                  {user.roles && user.roles.length > 0 ? (
-                    user.roles.map((role, idx) => (
-                      <Box key={idx} sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography variant="body1" fontWeight={500} color="primary.dark">
-                            {role}
-                          </Typography>
-                          <Chip label="Actif" color="success" size="small" />
-                        </Stack>
-                      </Box>
-                    ))
-                  ) : (
-                    <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.100', borderRadius: 2 }}>
-                      <Typography color="text.secondary">Aucun rôle assigné</Typography>
-                    </Box>
-                  )}
-                </Stack>
-              </Card>
-            </Grid>
-
-            {/* Section Permissions */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card sx={{ p: 3, height: '100%' }}>
-                <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                  <SupervisorAccountIcon color="success" />
-                  <Typography variant="h6" fontWeight={600}>Permissions</Typography>
-                </Stack>
-                
-                {user.permissions && user.permissions.length > 0 ? (
-                  <Stack spacing={2}>
-                    {user.permissions.map((permission, idx) => (
-                      <Box key={idx} sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography variant="body1" fontWeight={500}>
-                            {permission}
-                          </Typography>
-                          <Chip label="Autorisé" color="success" size="small" />
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'grey.100', borderRadius: 2 }}>
-                    <Typography color="text.secondary">Aucune permission</Typography>
-                  </Box>
-                )}
               </Card>
             </Grid>
           </Grid>
@@ -367,7 +303,7 @@ const Page = () => {
                         <Typography variant="caption" color="text.secondary" textTransform="uppercase" fontWeight={600}>
                           Email
                         </Typography>
-                        <Typography variant="body1" fontWeight={500}>{user.email}</Typography>
+                        <Typography variant="body1" fontWeight={500}>{user.emailUser}</Typography>
                       </Box>
                     </Stack>
                   </Box>
@@ -385,8 +321,8 @@ const Page = () => {
                     </Typography>
                     <Box mt={0.5}>
                       <Chip 
-                        label={user.active ? 'Actif' : 'Inactif'}
-                        color={user.active ? 'success' : 'error'}
+                        label={user.etatUsers ? 'Actif' : 'Inactif'}
+                        color={user.etatUsers ? 'success' : 'error'}
                         size="small"
                       />
                     </Box>
@@ -399,7 +335,7 @@ const Page = () => {
                           Créé le
                         </Typography>
                         <Typography variant="body1" fontWeight={500}>
-                          {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                          {user.createdAtUser ? new Date(user.createdAtUser).toLocaleDateString('fr-FR') : 'N/A'}
                         </Typography>
                       </Box>
                     </Stack>
@@ -412,7 +348,7 @@ const Page = () => {
                           Modifié le
                         </Typography>
                         <Typography variant="body1" fontWeight={500}>
-                          {new Date(user.updatedAt).toLocaleDateString('fr-FR')}
+                          {user.updatedAtUser ? new Date(user.updatedAtUser).toLocaleDateString('fr-FR') : 'Jamais'}
                         </Typography>
                       </Box>
                     </Stack>
