@@ -1,8 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Box, Button, Card, Grid, IconButton, 
+import {
+  Box, Button, Card, Grid, IconButton,
   Stack, Typography, Chip, Avatar, CircularProgress, Alert
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -27,7 +27,7 @@ const Page = () => {
   // Charger les données de l'utilisateur depuis l'API
   const loadUser = useCallback(async () => {
     if (!code) return;
-    
+
     try {
       setLoading(true);
       const response = await usersService.getByCode(code);
@@ -50,7 +50,7 @@ const Page = () => {
   // Supprimer l'utilisateur
   const handleDelete = async () => {
     if (!user) return;
-    
+
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) {
       try {
         const response = await usersService.delete(user.codeUser);
@@ -68,9 +68,9 @@ const Page = () => {
   // Basculer le statut actif
   const handleToggleActive = async () => {
     if (!user) return;
-    
+
     try {
-      const response = await usersService.toggleActive(user.codeUser);
+      const response = await usersService.update(user.codeUser, { etatUsers: !user.etatUsers });
       if (response.success && response.data) {
         setUser(response.data);
       } else {
@@ -145,15 +145,15 @@ const Page = () => {
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   startIcon={<EditIcon />}
                   onClick={() => navigate(`/users?edit=${user.codeUser}`)}
                 >
                   Modifier
                 </Button>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
                   onClick={handleDelete}
@@ -167,10 +167,10 @@ const Page = () => {
           {/* Avatar et résumé */}
           <Card sx={{ p: 3 }}>
             <Stack direction="row" alignItems="center" spacing={3}>
-              <Avatar 
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
                   bgcolor: 'primary.main',
                   color: 'primary.contrastText',
                   fontSize: '2rem'
@@ -183,7 +183,7 @@ const Page = () => {
                   {user.nomUser}
                 </Typography>
                 <Stack direction="row" spacing={1} mt={1}>
-                  <Chip 
+                  <Chip
                     label={user.etatUsers ? 'Actif' : 'Inactif'}
                     color={user.etatUsers ? 'success' : 'error'}
                     size="small"
@@ -260,7 +260,7 @@ const Page = () => {
                 <Box>
                   <Typography variant="body2" color="text.secondary">Sécurité</Typography>
                   <Typography variant="h6" fontWeight={500}>
-                    Mot de passe hashé
+                    Mot de passe
                   </Typography>
                 </Box>
               </Card>
@@ -320,7 +320,7 @@ const Page = () => {
                       Statut
                     </Typography>
                     <Box mt={0.5}>
-                      <Chip 
+                      <Chip
                         label={user.etatUsers ? 'Actif' : 'Inactif'}
                         color={user.etatUsers ? 'success' : 'error'}
                         size="small"

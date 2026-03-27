@@ -1,8 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Box, Button, Card, Grid, IconButton, 
-  Stack, Typography, Chip, Avatar, LinearProgress
+  Stack, Typography, Chip, Avatar, LinearProgress, CircularProgress, Alert
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
@@ -16,8 +17,12 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { mockLivreurs, mockLivraisons, mockWalletLivreurs, mockWalletTransactions, mockGains } from 'src/data/mock';
+import EmailIcon from '@mui/icons-material/Email';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import { mockLivraisons, mockWalletLivreurs, mockWalletTransactions, mockGains } from 'src/data/mock';
 import { PageContainer } from 'src/components/page-container';
+import { livreursService } from 'src/lib/api';
 
 // Types pour les données du livreur
 interface LivreurStats {
@@ -71,22 +76,54 @@ const getLivreurStats = (livreurCode: string): LivreurStats => {
   };
 };
 
-// Convertir les données mock vers le format détail
-const getLivreurDetailData = (code: string) => {
-  const livreur = mockLivreurs.find(l => l.code_livreur === code);
-  if (!livreur) return null;
-  return livreur;
-};
-
 // Page Détail Livreur
 const Page = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   
-  const livreur = code ? getLivreurDetailData(code) : null;
+  const [livreur, setLivreur] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadLivreur = useCallback(async () => {
+    if (!code) return;
+    try {
+      setLoading(true);
+      const response = await livreursService.getByCode(code);
+      if (response.success && response.data) {
+        setLivreur(response.data);
+      } else {
+        setError(response.message || 'Livreur non trouvé');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur de connexion');
+    } finally {
+      setLoading(false);
+    }
+  }, [code]);
+
+  useEffect(() => {
+    loadLivreur();
+  }, [loadLivreur]);
+
   const stats = code ? getLivreurStats(code) : null;
 
-  if (!livreur || !stats) {
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>Chargement... | Woli Delivery</title>
+        </Helmet>
+        <PageContainer>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </PageContainer>
+      </>
+    );
+  }
+
+  if (error || !livreur || !stats) {
     return (
       <>
         <Helmet>
@@ -106,13 +143,27 @@ const Page = () => {
     );
   }
 
+
+  const livreurCode = livreur.code_livreur || livreur.codeLivreur;
+  const nomLivreur = livreur.nom_livreur || livreur.nomLivreur || 'Livreur';
+  const prenomLivreur = livreur.prenom_livreur || '';
+  const nomComplet = prenomLivreur ? `${prenomLivreur} ${nomLivreur}` : nomLivreur;
+  const telephone = livreur.telephone_livreur || livreur.telephoneLivreur;
+  const isActif = livreur.statut_livreurs === 1 || livreur.statut_livreurs === true || livreur.active === true;
+  const dateCreation = livreur.created_at_livreur || livreur.createdAt;
+
   return (
     <>
       <Helmet>
-        <title>{livreur.nom_livreur} | Woli Delivery</title>
+        <title>{nomComplet} | Woli Delivery</title>
       </Helmet>
       <PageContainer>
         <Stack spacing={3}>
+            {error && (
+              <Alert severity="error" onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
             {/* En-tête avec navigation */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={2} mb={1}>
@@ -121,27 +172,19 @@ const Page = () => {
                 </IconButton>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h4" fontWeight={700}>
-                    {livreur.nom_livreur}
+                    {nomComplet}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Code: {livreur.code_livreur}
+                    Code: {livreurCode}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1}>
                   <Button 
                     variant="outlined" 
                     startIcon={<EditIcon />}
-                    onClick={() => console.log('Edit', livreur.code_livreur)}
+                    onClick={() => navigate('/livreurs')}
                   >
                     Modifier
-                  </Button>
-                  <Button 
-                    variant="outlined" 
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => console.log('Delete', livreur.code_livreur)}
-                  >
-                    Supprimer
                   </Button>
                 </Stack>
               </Stack>
@@ -159,16 +202,16 @@ const Page = () => {
                     fontSize: '2rem'
                   }}
                 >
-                  {livreur.nom_livreur.charAt(0).toUpperCase()}
+                  {nomLivreur.charAt(0).toUpperCase()}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h5" fontWeight={600}>
-                    {livreur.nom_livreur}
+                    {nomComplet}
                   </Typography>
                   <Stack direction="row" spacing={1} mt={1}>
                     <Chip 
-                      label={livreur.statut_livreurs === 1 ? 'Actif' : 'Inactif'}
-                      color={livreur.statut_livreurs === 1 ? 'success' : 'error'}
+                      label={isActif ? 'Actif' : 'Inactif'}
+                      color={isActif ? 'success' : 'error'}
                       size="small"
                     />
                     <Chip 
@@ -179,11 +222,11 @@ const Page = () => {
                   </Stack>
                 </Box>
                 <Stack direction="row" spacing={3}>
-                  {livreur.telephone_livreur && (
+                  {telephone && (
                     <Box sx={{ textAlign: 'center' }}>
                       <PhoneIcon color="warning" />
                       <Typography variant="caption" display="block">
-                        {livreur.telephone_livreur}
+                        {telephone}
                       </Typography>
                     </Box>
                   )}
@@ -429,13 +472,13 @@ const Page = () => {
                       <Typography variant="caption" color="text.secondary" textTransform="uppercase" fontWeight={600}>
                         Code livreur
                       </Typography>
-                      <Typography variant="body1" fontWeight={500}>{livreur.code_livreur}</Typography>
+                      <Typography variant="body1" fontWeight={500}>{livreurCode}</Typography>
                     </Box>
                     <Box sx={{ py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
                       <Typography variant="caption" color="text.secondary" textTransform="uppercase" fontWeight={600}>
                         Nom complet
                       </Typography>
-                      <Typography variant="body1" fontWeight={500}>{livreur.nom_livreur}</Typography>
+                      <Typography variant="body1" fontWeight={500}>{nomComplet}</Typography>
                     </Box>
                     <Box sx={{ py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
@@ -444,7 +487,7 @@ const Page = () => {
                           <Typography variant="caption" color="text.secondary" textTransform="uppercase" fontWeight={600}>
                             Téléphone
                           </Typography>
-                          <Typography variant="body1" fontWeight={500}>{livreur.telephone_livreur || 'Non défini'}</Typography>
+                          <Typography variant="body1" fontWeight={500}>{telephone || 'Non défini'}</Typography>
                         </Box>
                       </Stack>
                     </Box>
@@ -473,8 +516,8 @@ const Page = () => {
                       </Typography>
                       <Box mt={0.5}>
                         <Chip 
-                          label={livreur.statut_livreurs === 1 ? 'Actif' : 'Inactif'}
-                          color={livreur.statut_livreurs === 1 ? 'success' : 'error'}
+                          label={isActif ? 'Actif' : 'Inactif'}
+                          color={isActif ? 'success' : 'error'}
                           size="small"
                         />
                       </Box>
@@ -487,7 +530,7 @@ const Page = () => {
                             Créé le
                           </Typography>
                           <Typography variant="body1" fontWeight={500}>
-                            {new Date(livreur.created_at_livreur).toLocaleDateString('fr-FR')}
+                            {dateCreation ? new Date(dateCreation).toLocaleDateString('fr-FR') : 'N/A'}
                           </Typography>
                         </Box>
                       </Stack>

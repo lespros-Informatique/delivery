@@ -2,14 +2,16 @@
  * Auth API Service
  * ==========================================
  * Authentication endpoints
- * 
- * Security: Uses HTTP-only cookies for token storage
- * to prevent XSS attacks. Tokens are set by the server.
+ *
+ * Security: Uses HTTP-only cookies for token storage (set by server).
+ * The localStorage is used ONLY for display state (user info for UI).
+ * Tokens NEVER touch localStorage — all auth is done via cookies.
  */
 
 import { apiClient, ApiResponse } from './client';
 
-// Types matching backend
+// ─── Request / Response Types ───────────────────────────────────────────────
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -34,13 +36,19 @@ export interface AuthUser {
 
 export interface AuthResponse {
   user: AuthUser;
-  token?: string; // Token still returned for compatibility, but primary is cookies
+  // token field intentionally omitted — cookies are the single source of truth
 }
+
+// ─── Storage Keys (UI state only – never stores tokens) ─────────────────────
+
+const USER_STORAGE_KEY = 'woli_user';
+
+// ─── Auth Service ────────────────────────────────────────────────────────────
 
 export const authService = {
   /**
-   * Register a new user
-   * Note: Tokens are set via HTTP-only cookies by the server
+   * Register a new user.
+   * Tokens are set automatically via HTTP-only cookies by the server.
    */
   async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register', data);
@@ -48,8 +56,8 @@ export const authService = {
   },
 
   /**
-   * Login user
-   * Note: Tokens are set via HTTP-only cookies by the server
+   * Login user.
+   * Tokens are set automatically via HTTP-only cookies by the server.
    */
   async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/login', data);
@@ -57,7 +65,8 @@ export const authService = {
   },
 
   /**
-   * Refresh access token using refresh token cookie
+   * Refresh access token using the refresh token cookie.
+   * The server replaces both cookies transparently.
    */
   async refresh(): Promise<ApiResponse<AuthResponse>> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/refresh', {});
@@ -65,7 +74,7 @@ export const authService = {
   },
 
   /**
-   * Logout user - clears cookies via server
+   * Logout user — server clears both cookies.
    */
   async logout(): Promise<ApiResponse<{ message: string }>> {
     const response = await apiClient.post<ApiResponse<{ message: string }>>('/auth/logout', {});
@@ -73,55 +82,50 @@ export const authService = {
   },
 
   /**
-   * Get current user
+   * Get authenticated user data from the server (verifies cookie).
    */
   async me(): Promise<ApiResponse<AuthUser>> {
     const response = await apiClient.get<ApiResponse<AuthUser>>('/auth/me');
     return response.data;
   },
 
+  // ─── UI State Helpers (display only – NOT used for auth decisions) ─────────
+
   /**
-   * Check if user is authenticated
-   * Note: In cookie-based auth, we rely on the presence of cookies
-   * This is a best-effort check - actual auth is verified by the server
+   * Returns true if a user object is stored in localStorage.
+   * This is a UI-only hint — actual auth is verified server-side via cookies.
    */
   isAuthenticated(): boolean {
-    // Check if we have a stored user from a previous successful login
-    // The actual authentication is handled by the server via cookies
-    return localStorage.getItem('woli_user') !== null;
+    return localStorage.getItem(USER_STORAGE_KEY) !== null;
   },
 
   /**
-   * Get stored user (for display purposes only)
-   * Authentication is verified by the server via cookies
+   * Get stored user data (for display purposes only).
+   * Do NOT use for auth checks — rely on server responses or `me()`.
    */
   getCurrentUser(): AuthUser | null {
-    const userStr = localStorage.getItem('woli_user');
-    return userStr ? JSON.parse(userStr) : null;
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      return null;
+    }
   },
 
   /**
-   * Store user in localStorage (for UI state only)
-   * Note: This is for display purposes only, not for authentication
-   * Authentication is handled via HTTP-only cookies
+   * Persist user data for UI display after a successful login/refresh.
+   * Does NOT store tokens.
    */
   setCurrentUser(user: AuthUser): void {
-    localStorage.setItem('woli_user', JSON.stringify(user));
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   },
 
   /**
-   * Store access token in localStorage
-   * Note: This is for API requests that require Authorization header
-   */
-  setToken(token: string): void {
-    localStorage.setItem('woli_token', token);
-  },
-
-  /**
-   * Clear stored user (for logout UI state)
+   * Remove stored user data (called on logout).
    */
   clearCurrentUser(): void {
-    localStorage.removeItem('woli_user');
+    localStorage.removeItem(USER_STORAGE_KEY);
   },
 };
 

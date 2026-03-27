@@ -5,8 +5,7 @@
  */
 
 import { apiClient, ApiResponse } from './client';
-import axios from 'axios';
-import { mapArrayToCamelCase } from './mapper';
+import { mapApiResponse } from './mapper';
 
 export interface User {
   idUser: number;
@@ -23,7 +22,7 @@ export interface CreateUserRequest {
   emailUser: string;
   nomUser: string;
   telephoneUser?: string;
-  motDePasse: string;
+  motDePasse?: string;
 }
 
 export interface UpdateUserRequest {
@@ -36,49 +35,23 @@ export interface PaginationParams {
   page?: number;
   limit?: number;
   search?: string;
-  role?: string;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 export const usersService = {
   /**
    * Get all users with pagination
    */
-  async getAll(params?: PaginationParams): Promise<ApiResponse<PaginatedResponse<User>>> {
+  async getAll(params?: PaginationParams): Promise<ApiResponse<User[]>> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.limit) queryParams.set('limit', params.limit.toString());
     if (params?.search) queryParams.set('search', params.search);
 
-    const response = await apiClient.get<ApiResponse<{ users: User[], pagination: PaginationMeta }>>(`/users?${queryParams}`);
-    
-    // Map users from snake_case to camelCase using the mapper
-    const users = mapArrayToCamelCase(response.data.data?.users as unknown as Record<string, unknown>[] || []) as unknown as User[];
-    
+    const response = await apiClient.get<ApiResponse<User[]>>(`/users?${queryParams}`);
+
     return {
-      success: response.data.success,
-      data: {
-        data: users,
-        total: response.data.data?.pagination?.total || 0,
-        page: response.data.data?.pagination?.page || 1,
-        limit: response.data.data?.pagination?.limit || 10,
-        totalPages: response.data.data?.pagination?.totalPages || 0,
-      },
-      message: response.data.message
+      ...response.data,
+      data: mapApiResponse(response.data.data) as unknown as User[]
     };
   },
 
@@ -87,7 +60,10 @@ export const usersService = {
    */
   async getByCode(code: string): Promise<ApiResponse<User>> {
     const response = await apiClient.get<ApiResponse<User>>(`/users/${code}`);
-    return response.data;
+    return {
+      ...response.data,
+      data: mapApiResponse(response.data.data) as unknown as User
+    };
   },
 
   /**
@@ -111,14 +87,6 @@ export const usersService = {
    */
   async delete(codeUser: string): Promise<ApiResponse<void>> {
     const response = await apiClient.delete<ApiResponse<void>>(`/users/${codeUser}`);
-    return response.data;
-  },
-
-  /**
-   * Toggle user active status
-   */
-  async toggleActive(codeUser: string): Promise<ApiResponse<User>> {
-    const response = await apiClient.patch<ApiResponse<User>>(`/users/${codeUser}/toggle-active`);
     return response.data;
   },
 };

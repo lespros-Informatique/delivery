@@ -37,5 +37,6 @@ export const createShadows = (config: ShadowsConfig): string[] => {
     `0px 0px 1px ${layer1Color}, 0px 10px 36px ${layer2Color}`,
     `0px 0px 1px ${layer1Color}, 0px 10px 38px ${layer2Color}`,
     `0px 0px 1px ${layer1Color}, 0px 10px 40px ${layer2Color}`,
-  ] as const;
+    `0px 0px 1px ${layer1Color}, 0px 10px 42px ${layer2Color}`,
+  ] as any;
 };

@@ -8,10 +8,10 @@ import {
   Switch,
   InputAdornment
 } from '@mui/material';
-import { mockRestaurants } from 'src/data/mock';
+import { useApiList } from 'src/hooks/useApiList';
+import { restaurantsService } from 'src/lib/api/restaurants';
 
 interface LivreurFormData {
-  code_livreur: string;
   nom_livreur: string;
   prenom_livreur: string;
   telephone_livreur: string;
@@ -27,17 +27,21 @@ interface LivreurFormProps {
   onSubmit: (data: LivreurFormData) => void;
 }
 
-const generateLivreurCode = () => {
-  const random = Math.floor(Math.random() * 10000);
-  return `LIV_${random.toString().padStart(4, '0')}`;
-};
-
 export function LivreurForm({ 
-  initialData, 
+  initialData,
   onSubmit 
 }: LivreurFormProps) {
+  // Récupérer les vrais restaurants depuis l'API pour éviter les contraintes de clés erronées liées aux mocks
+  const { data: response } = useApiList<any>(
+    'restaurants_options',
+    () => restaurantsService.getAll({ limit: 200 }) as any
+  );
+  
+  // Sécurisation de l'extraction de l'Array (gère les structures nichées ou invalides)
+  const rawData: any = response?.data;
+  const restaurants = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
+
   const [formData, setFormData] = useState<LivreurFormData>({
-    code_livreur: initialData?.code_livreur || generateLivreurCode(),
     nom_livreur: initialData?.nom_livreur || '',
     prenom_livreur: initialData?.prenom_livreur || '',
     telephone_livreur: initialData?.telephone_livreur || '',
@@ -60,20 +64,6 @@ export function LivreurForm({
   return (
     <Box component="form" id="modal-form" onSubmit={handleSubmit}>
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            size="medium"
-            label="Code livreur"
-            value={formData.code_livreur}
-            onChange={(e) => handleChange('code_livreur', e.target.value)}
-            required
-            disabled
-            helperText="Code généré automatiquement"
-          />
-        </Grid>
-        
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
@@ -132,9 +122,12 @@ export function LivreurForm({
             onChange={(e) => handleChange('restaurant_code', e.target.value)}
           >
             <MenuItem value="">Aucun (indépendant)</MenuItem>
-            {mockRestaurants.map((restaurant) => (
-              <MenuItem key={restaurant.id_restaurant} value={restaurant.code_restaurant}>
-                {restaurant.libelle_restaurant}
+            {restaurants.map((restaurant: any) => (
+              <MenuItem 
+                key={restaurant.id_restaurant || restaurant.id || restaurant.code_restaurant || restaurant.codeRestaurant} 
+                value={restaurant.code_restaurant || restaurant.codeRestaurant}
+              >
+                {restaurant.libelle_restaurant || restaurant.nom_restaurant || restaurant.nomRestaurant}
               </MenuItem>
             ))}
           </TextField>

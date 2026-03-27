@@ -29,7 +29,7 @@ export function createTheme(config: ThemeConfig) {
     },
     components,
     palette,
-    shadows,
+    shadows: shadows as any,
     shape: {
       borderRadius: 6
     },

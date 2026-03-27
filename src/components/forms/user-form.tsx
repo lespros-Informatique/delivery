@@ -10,17 +10,15 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
-import LockIcon from '@mui/icons-material/Lock';
 
 /**
  * Interface pour les données du formulaire utilisateur
- * Le code est généré par le backend, pas besoin de le saisir
+ * Le mot de passe est généré par le backend
  */
 interface UserFormData {
   nomUser: string;
   emailUser: string;
   telephoneUser?: string;
-  motDePasse?: string;
   etatUsers: boolean;
 }
 
@@ -30,8 +28,8 @@ interface UserFormProps {
   isEdit?: boolean;
 }
 
-export function UserForm({ 
-  initialData, 
+export function UserForm({
+  initialData,
   onSubmit,
   isEdit = false
 }: UserFormProps) {
@@ -39,7 +37,6 @@ export function UserForm({
     nomUser: initialData?.nomUser || '',
     emailUser: initialData?.emailUser || '',
     telephoneUser: initialData?.telephoneUser || '',
-    motDePasse: '',
     etatUsers: initialData?.etatUsers ?? true
   });
 
@@ -49,30 +46,7 @@ export function UserForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('Form data before submit:', formData);
-    
-    // Validation du mot de passe pour la création
-    if (!isEdit && (!formData.motDePasse || formData.motDePasse.length < 6)) {
-      alert('Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-    
-    // Préparer les données à envoyer
-    const submitData: Record<string, unknown> = {
-      nomUser: formData.nomUser,
-      emailUser: formData.emailUser,
-      telephoneUser: formData.telephoneUser || undefined,
-      etatUsers: formData.etatUsers,
-    };
-    
-    // Ajouter le mot de passe seulement si présent et非edit
-    if (!isEdit && formData.motDePasse) {
-      submitData.motDePasse = formData.motDePasse;
-    }
-    
-    console.log('Submit data:', submitData);
-    onSubmit(submitData as unknown as UserFormData);
+    onSubmit(formData);
   };
 
   return (
@@ -127,6 +101,7 @@ export function UserForm({
             value={formData.emailUser}
             onChange={(e) => handleChange('emailUser', e.target.value)}
             required
+            disabled={isEdit}
             placeholder="exemple@email.com"
             InputProps={{
               startAdornment: (
@@ -138,54 +113,6 @@ export function UserForm({
           />
         </Grid>
 
-        {/* Mot de passe: seulement pour la création */}
-        {!isEdit && (
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="medium"
-              label="Mot de passe"
-              type="password"
-              value={formData.motDePasse || ''}
-              onChange={(e) => handleChange('motDePasse', e.target.value)}
-              required={!isEdit}
-              placeholder="Minimum 6 caractères"
-              helperText="Obligatoire pour la création"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-        )}
-
-        {isEdit && (
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="medium"
-              label="Nouveau mot de passe"
-              type="password"
-              value={formData.motDePasse || ''}
-              onChange={(e) => handleChange('motDePasse', e.target.value)}
-              placeholder="Laisser vide pour garder l'actuel"
-              helperText="Optionnel: laissez vide pour conserver le mot de passe actuel"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-        )}
-
         <Grid size={{ xs: 12 }}>
           <FormControlLabel
             control={
@@ -195,7 +122,7 @@ export function UserForm({
                 color="primary"
               />
             }
-            label="Utilisateur actif"
+            label={formData.etatUsers ? "Utilisateur actif" : "Utilisateur inactif"}
           />
         </Grid>
       </Grid>

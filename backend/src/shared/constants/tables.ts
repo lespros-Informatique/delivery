@@ -12,50 +12,50 @@ export const TABLES = {
   PERMISSIONS: 'permissions',
   USER_ROLES: 'user_roles',
   ROLE_PERMISSIONS: 'role_permissions',
-  
+
   // Restaurants & Gestion
   RESTAURANTS: 'restaurants',
   FAMILLES: 'familles',
   CATEGORIES: 'categories',
   PRODUITS: 'produits',
-  
+
   // Commandes & Clients
   CLIENTS: 'clients',
   COMMANDES: 'commandes',
   LIGNE_COMMANDES: 'ligne_commandes',
-  
+
   // Livraisons
   LIVREURS: 'livreurs',
   LIVRAISONS: 'livraisons',
   LIVRAISON_POSITIONS: 'livraison_positions',
-  
+
   // Paiements & Finance
   PAIEMENTS: 'paiements',
   COMMISSIONS: 'commissions',
   COMMISSION_CONFIGS: 'commission_configs',
   GAINS: 'gains',
-  
+
   // Wallets
   WALLET_LIVREURS: 'wallet_livreurs',
   WALLET_TRANSACTIONS: 'wallet_transactions',
-  
+
   // Promotions
   PROMOTIONS: 'promotions',
-  
+
   // Localisation
   VILLES: 'villes',
   ZONES_LIVRAISON: 'zones_livraison',
-  
+
   // Panier
   PANIER: 'panier',
   PANIER_LIGNES: 'panier_lignes',
-  
+
   // Paramètres
   RESTAURANT_FERMETURES: 'restaurant_fermetures',
   RESTAURANT_HORAIRES: 'restaurant_horaires',
   SETTINGS_PLATFORM: 'settings_platform',
   SETTINGS_RESTAURANTS: 'settings_restaurants',
-  
+
   // Notifications & Logs
   NOTIFICATIONS: 'notifications',
   ANALYTICS: 'analytics',
@@ -72,7 +72,7 @@ export type TableName = typeof TABLES[keyof typeof TABLES];
 export const COLUMNS = {
   // Colonnes d'ID
   ID: 'id',
-  
+
   // Colonnes de code
   CODE: 'code',
   CODE_USER: 'code_user',
@@ -84,7 +84,8 @@ export const COLUMNS = {
   CODE_CATEGORIE: 'code_categorie',
   CODE_ROLE: 'code_role',
   CODE_PERMISSION: 'code_permission',
-  
+  CODE_VILLE: 'code_ville',
+
   // Colonnes de nom
   NOM: 'nom',
   NOM_USER: 'nom_user',
@@ -96,21 +97,21 @@ export const COLUMNS = {
   LIBELLE_PRODUIT: 'libelle_produit',
   LIBELLE_ROLE: 'libelle_role',
   LIBELLE_RESTAURANT: 'libelle_restaurant',
-  
+
   // Colonnes d'email
   EMAIL: 'email',
   EMAIL_USER: 'email_user',
   EMAIL_CLIENT: 'email_client',
-  
+
   // Colonnes de téléphone
   TELEPHONE: 'telephone',
   TELEPHONE_USER: 'telephone_user',
   TELEPHONE_CLIENT: 'telephone_client',
   TELEPHONE_LIVREUR: 'telephone_livreur',
-  
+
   // Colonnes de mot de passe
   MOT_DE_PASSE: 'mot_de_passe',
-  
+
   // Colonnes d'état
   ETAT: 'etat',
   ETAT_USERS: 'etat_users',
@@ -121,7 +122,7 @@ export const COLUMNS = {
   ETAT_CATEGORIE: 'statut_categorie',
   ETAT_ROLE: 'etat_role',
   ETAT_PERMISSION: 'etat_permission',
-  
+
   // Colonnes de statut
   STATUT: 'statut',
   STATUT_COMMANDE: 'statut_commande',
@@ -132,7 +133,7 @@ export const COLUMNS = {
   STATUT_PROMOTION: 'statut_promotion',
   STATUT_ZONE: 'statut_zone',
   STATUT_VILLE: 'statut_ville',
-  
+
   // Colonnes de relations
   USER_CODE: 'user_code',
   ROLE_CODE: 'role_code',
@@ -142,13 +143,13 @@ export const COLUMNS = {
   LIVREUR_CODE: 'livreur_code',
   PRODUIT_CODE: 'produit_code',
   CATEGORIE_CODE: 'categorie_code',
-  VILLE_CODE: 'ville_code',
+  VILLE_CODE: 'code_ville',
   PANIER_CODE: 'panier_code',
   LIVRAISON_CODE: 'livraison_code',
   WALLET_CODE: 'wallet_code',
   PERMISSION_CODE: 'permission_code',
   FAMILLE_CODE: 'famille_code',
-  
+
   // Colonnes de dates
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at',
@@ -160,7 +161,7 @@ export const COLUMNS = {
   UPDATED_AT_COMMANDE: 'updated_at_commande',
   CREATED_AT_LIVRAISON: 'created_at_livraison',
   UPDATED_AT_LIVRAISON: 'updated_at_livraison',
-  
+
   // Colonnes de prix/montant
   PRIX: 'prix',
   PRIX_PRODUIT: 'prix_produit',
@@ -174,17 +175,17 @@ export const COLUMNS = {
   MONTANT_DELIVERY: 'montant_delivery',
   FRAIS_LIVRAISON: 'frais_livraison',
   FRAIS_LIVRAISON_DEFAUT: 'frais_livraison_defaut',
-  
+
   // Colonnes de description
   DESCRIPTION: 'description',
   DESCRIPTION_RESTAURANT: 'description_restaurant',
   DESCRIPTION_PRODUIT: 'description_produit',
   DESCRIPTION_ROLE: 'description_role',
-  
+
   // Colonnes d'adresse
   ADRESSE: 'adresse',
   ADRESSE_RESTAURANT: 'adresse_restaurant',
-  
+
   // Colonnes diverses
   LATITUDE: 'latitude',
   LONGITUDE: 'longitude',
@@ -196,7 +197,7 @@ export const COLUMNS = {
   LOGO_RESTAURANT: 'logo_restaurant',
   PAYS: 'pays',
   DISPONIBLE: 'disponible_produit',
-  
+
   // Colonnes de quantité
   QUANTITE: 'quantite',
   QUANTITE_LIGNE_COMMANDE: 'quantite_ligne_commande',
@@ -273,6 +274,13 @@ export const TYPE_COMMISSION = {
   POURCENTAGE: 'pourcentage',
   FIXE: 'fixe',
 } as const;
+/**
+ * defaut etats
+ */
+export const ETAT_DEFAUT = {
+  ACTIF: 1,
+  INACTIF: 0,
+} as const;
 
 // Export par défaut
 export default {
@@ -285,4 +293,5 @@ export default {
   TYPE_TRANSACTION,
   TYPE_PROMOTION,
   TYPE_COMMISSION,
+  ETAT_DEFAUT,
 };

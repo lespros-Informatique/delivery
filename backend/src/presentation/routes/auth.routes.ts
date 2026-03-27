@@ -16,7 +16,7 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '../../infrastructure/database/prisma.service.js';
 import { logger } from '../../shared/utils/logger.util.js';
-import { TABLES, COLUMNS } from '../../shared/constants/tables.js';
+import { TABLES, COLUMNS, ETAT_DEFAUT } from '../../shared/constants/tables.js';
 import { authenticate } from '../middleware/authenticate.middleware.js';
 
 const ACCESS_TOKEN_EXPIRY = '15m';
@@ -123,7 +123,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
             [COLUMNS.NOM_USER]: data.nomUser,
             [COLUMNS.TELEPHONE_USER]: data.telephoneUser || null,
             [COLUMNS.MOT_DE_PASSE]: hashedPassword,
-            [COLUMNS.ETAT_USERS]: 1,
+            [COLUMNS.ETAT_USERS]: ETAT_DEFAUT.ACTIF,
           },
         });
 
@@ -191,7 +191,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         }
 
         // Check if user is active
-        if (user.etat_users !== 1) {
+        if (user.etat_users !== ETAT_DEFAUT.ACTIF) {
           return reply.status(403).send({
             success: false,
             message: 'Votre compte est désactivé',
@@ -202,7 +202,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         const userRoles = await prisma.user_roles.findMany({
           where: {
             [COLUMNS.USER_CODE]: user.code_user,
-            etat_user_role: 1,
+            etat_user_role: ETAT_DEFAUT.ACTIF,
           },
           include: {
             roles: true,
@@ -280,7 +280,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
           where: { id_user: decoded.id },
         });
 
-        if (!user || user.etat_users !== 1) {
+        if (!user || user.etat_users !== ETAT_DEFAUT.ACTIF) {
           return reply.status(401).send({
             success: false,
             message: 'Utilisateur non trouvé ou inactif',
@@ -291,7 +291,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         const userRoles = await prisma.user_roles.findMany({
           where: {
             [COLUMNS.USER_CODE]: user.code_user,
-            etat_user_role: 1,
+            etat_user_role: ETAT_DEFAUT.ACTIF,
           },
           include: {
             roles: true,
@@ -370,7 +370,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         const userRoles = await prisma.user_roles.findMany({
           where: {
             [COLUMNS.USER_CODE]: dbUser.code_user,
-            etat_user_role: 1,
+            etat_user_role: ETAT_DEFAUT.ACTIF,
           },
           include: {
             roles: true,

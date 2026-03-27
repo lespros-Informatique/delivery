@@ -1,0 +1,3 @@
+# ok  l'ajout de users fonctionne bien ,modification fonctionne aussi et aussi le delete, maintenant voila les modifications a ajouter,qd on clic pour suprimer une joli modal(MUI Dialog → confirmations) doit sortie au lieu d'un simple alert (Voulez-vous vraiment supprimer l'utilisateur Kone patrice ?) et pour les retour on doit utiliser les message react-hot-toast → notifications et qud on valide une supression on ne doit pas delete en vrai mais un softdelete en changeant l'etat respecte le patern sans rien melange
+
+# je veux que tu explique de façon detail chaque precess du crud users pour que je comprenne les cheminement et savoir que fonction ou elements communique avec quel du debut jusqu'a la fin dans un ou des files readme bien structure

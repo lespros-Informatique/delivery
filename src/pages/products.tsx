@@ -1,76 +1,91 @@
 import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Stack, Typography, Button, Grid, Card, Chip, IconButton } from '@mui/material';
+import { Box, Stack, Typography, Button, Chip } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+
 import { DataTable, ColumnConfig, ActionOption } from 'src/components/data-table';
+import { PageContainer } from 'src/components/page-container';
+import { AsyncPage } from 'src/components/AsyncPage';
 import { FormModal } from 'src/components/modal/form-modal';
 import { ProductForm } from 'src/components/forms/product-form';
-import { mockProduits, mockCategories } from 'src/data/mock';
+import { productsService, type Product } from 'src/lib/api';
+import { useApiList } from 'src/hooks/useApiList';
+import { useApiPagination } from 'src/hooks/useApiPagination';
+import { useApiMutation } from 'src/hooks/useApiMutation';
 
-// Colonnes de configuration
-const columns: ColumnConfig[] = [
-  { 
-    field: 'code_produit', 
-    headerName: 'CODE', 
-    width: 100 
-  },
-  { 
-    field: 'libelle_produit', 
-    headerName: 'PRODUIT', 
-    flex: 1, 
-    minWidth: 150 
-  },
-  { 
-    field: 'description_produit', 
-    headerName: 'DESCRIPTION', 
-    flex: 1, 
-    minWidth: 200 
-  },
-  { 
-    field: 'prix_produit', 
-    headerName: 'PRIX', 
-    width: 100,
-    align: 'right',
-    headerAlign: 'right',
-    valueFormatter: (value) => value ? `${Number(value).toLocaleString()} XOF` : '',
-  },
-  { 
-    field: 'categorie_code', 
-    headerName: 'CATÉGORIE', 
-    width: 130 
-  },
-];
-
-// Page Produits - ADMIN (avec bouton ajouter, modifier, supprimer)
+/**
+ * Page Produits - Liste Réelle
+ * ===========================================
+ * Migration effectuée : Mocks -> API Réelle + React Query
+ */
 const Page = () => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  
-  const rows = mockProduits.map((p) => ({
-    ...p,
-    disponible_produit: p.disponible_produit === 1 ? 'Disponible' : 'Indisponible',
-    etat_produit: p.etat_produit === 1 ? 'actif' : 'inactif'
-  }));
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  // Pagination
+  const { page, limit, onPageChange, onLimitChange } = useApiPagination(1, 10);
+
+  // Fetching
+  const { data: response, isLoading, error, refetch } = useApiList<Product>(
+    'produits',
+    (params) => productsService.getAll(params),
+    { page, limit }
+  );
+
+  const data = response?.data || [];
+
+  // Mutations
+  const createProduct = useApiMutation(
+    (newData: any) => productsService.create(newData),
+    {
+      onSuccess: () => {
+        refetch();
+        handleCloseModal();
+      }
+    }
+  );
+
+  const updateProduct = useApiMutation(
+    (updateData: { code: string; data: any }) => productsService.update(updateData.code, updateData.data),
+    {
+      onSuccess: () => {
+        refetch();
+        handleCloseModal();
+      }
+    }
+  );
+
+  const deleteProduct = useApiMutation(
+    (code: string) => productsService.delete(code),
+    {
+      onSuccess: () => refetch()
+    }
+  );
+
+  // Actions
   const actionOptions: ActionOption[] = [
     { label: 'Voir', icon: <VisibilityIcon fontSize="small" />, action: 'view' },
     { label: 'Modifier', icon: <EditIcon fontSize="small" />, action: 'edit' },
-    { label: 'Supprimer', icon: <DeleteIcon fontSize="small" />, action: 'delete' },
+    { label: 'Supprimer', icon: <DeleteIcon fontSize="small" color="error" />, action: 'delete', color: 'error' },
   ];
 
-  const handleActionClick = (row: any, action: string) => {
+  const handleActionClick = (row: Record<string, unknown>, action: string) => {
+    const product = row as unknown as Product;
     if (action === 'view') {
-      navigate(`/products/${row.code_produit}`);
+      navigate(`/products/${product.codeProduit}`);
     } else if (action === 'edit') {
-      setSelectedProduct(row);
+      setSelectedProduct(product);
       setModalOpen(true);
     } else if (action === 'delete') {
-      console.log('Delete', row.code_produit);
+      if (window.confirm(`Voulez-vous vraiment supprimer le produit ${product.libelleProduit} ?`)) {
+        deleteProduct.mutate(product.codeProduit);
+      }
     }
   };
 
@@ -84,101 +99,127 @@ const Page = () => {
     setSelectedProduct(null);
   };
 
-  const handleSubmitProduct = (data: any) => {
-    console.log('Nouveau produit:', data);
-    // Ici vous ajoutez la logique pour ajouter le produit
-    handleCloseModal();
+  const handleSubmitProduct = (formData: any) => {
+    if (selectedProduct) {
+      updateProduct.mutate({ code: selectedProduct.codeProduit, data: formData });
+    } else {
+      createProduct.mutate(formData);
+    }
   };
+
+  // Columns configuration (camelCase from Mapper)
+  const columns: ColumnConfig[] = [
+    {
+      field: 'codeProduit',
+      headerName: 'CODE',
+      width: 100
+    },
+    {
+      field: 'libelleProduit',
+      headerName: 'PRODUIT',
+      flex: 1,
+      minWidth: 150
+    },
+    {
+      field: 'prixProduit',
+      headerName: 'PRIX',
+      width: 120,
+      align: 'right',
+      headerAlign: 'right',
+      valueFormatter: (value) => value ? `${Number(value).toLocaleString()} XOF` : '0 XOF',
+    },
+    {
+      field: 'descriptionProduit',
+      headerName: 'DESCRIPTION',
+      flex: 1,
+      minWidth: 200,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical'
+        }}>
+          {params.value as string}
+        </Typography>
+      )
+    },
+    {
+      field: 'disponibleProduit',
+      headerName: 'DISPONIBILITÉ',
+      width: 140,
+      renderCell: (params) => (
+        <Chip
+          label={params.value ? 'Disponible' : 'Stock épuisé'}
+          color={params.value ? 'success' : 'error'}
+          size="small"
+          variant="outlined"
+        />
+      )
+    },
+  ];
 
   return (
     <>
       <Helmet>
         <title>Produits | Woli Delivery</title>
       </Helmet>
-      <Box sx={{ flexGrow: 1, py: 3 }}>
-        <Container maxWidth="xl">
-          <Stack spacing={3}>
-            {/* En-tête avec bouton Ajouter */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Box>
-                <Typography variant="h4" fontWeight={700}>
-                  Produits
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Gérez vos produits
-                </Typography>
-              </Box>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
-                Ajouter un produit
-              </Button>
-            </Stack>
+      <PageContainer>
+        <Stack spacing={3}>
+          {/* Header */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h4" fontWeight={700}>
+                Produits
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Gestion du catalogue produits
+              </Typography>
+            </Box>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
+              Nouveau produit
+            </Button>
+          </Stack>
 
-            {/* Catégories */}
-            <Card sx={{ p: 2 }}>
-              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                {mockCategories.map((categorie) => (
-                  <Chip
-                    key={categorie.id_categorie}
-                    label={categorie.libelle_categorie}
-                    variant="outlined"
-                  />
-                ))}
-              </Stack>
-            </Card>
-
-            {/* DataTable - ADMIN avec gestion */}
+          <AsyncPage isLoading={isLoading} error={error} isEmpty={data.length === 0} onRetry={() => refetch()}>
             <DataTable
-              rows={rows}
+              rows={data as unknown as Record<string, unknown>[]}
               columns={columns}
-              pageSize={10}
-              pageSizeOptions={[5, 10, 25, 50]}
-              statusColumn={{
-                field: 'disponible_produit',
-                mapping: {
-                  'Disponible': 'success',
-                  'Indisponible': 'error'
-                }
-              }}
               actions={actionOptions}
               onActionClick={handleActionClick}
+              rowCount={response?.pagination?.total || 0}
+              page={page - 1}
+              pageSize={limit}
+              onPageChange={(p) => onPageChange(p + 1)}
+              onPageSizeChange={onLimitChange}
+              loading={isLoading || deleteProduct.isPending}
             />
 
-            {/* Modal d'ajout/modification de produit */}
             <FormModal
               open={modalOpen}
               onClose={handleCloseModal}
               title={selectedProduct ? 'Modifier le produit' : 'Ajouter un produit'}
               maxWidth="md"
-              size="large"
               actions={
                 <>
                   <Button onClick={handleCloseModal} color="inherit">
                     Annuler
                   </Button>
-                  <Button variant="contained" type="submit" form="modal-form">
-                    {selectedProduct ? 'Modifier' : 'Ajouter'}
-                  </Button>
+                  <LoadingButton variant="contained" type="submit" form="modal-form" loading={createProduct.isPending || updateProduct.isPending}>
+                    {selectedProduct ? 'Enregistrer' : 'Ajouter'}
+                  </LoadingButton>
                 </>
               }
             >
-              <ProductForm 
-                initialData={selectedProduct ? {
-                  code_produit: selectedProduct.code_produit,
-                  restaurant_code: selectedProduct.restaurant_code,
-                  categorie_code: selectedProduct.categorie_code,
-                  libelle_produit: selectedProduct.libelle_produit,
-                  description_produit: selectedProduct.description_produit,
-                  prix_produit: selectedProduct.prix_produit,
-                  image_produit: selectedProduct.image_produit,
-                  disponible_produit: selectedProduct.disponible_produit === 'Disponible',
-                  etat_produit: selectedProduct.etat_produit === 'actif'
-                } : undefined}
+              <ProductForm
+                initialData={selectedProduct || undefined}
                 onSubmit={handleSubmitProduct}
               />
             </FormModal>
-          </Stack>
-        </Container>
-      </Box>
+          </AsyncPage>
+        </Stack>
+      </PageContainer>
     </>
   );
 };

@@ -19,8 +19,15 @@ export { default as livreursService, type Livreur, type CreateLivreurRequest, ty
 // Restaurants
 export { default as restaurantsService, type Restaurant, type CreateRestaurantRequest, type UpdateRestaurantRequest } from './restaurants';
 
+// Orders
+export { default as ordersService, type Order, type CreateOrderRequest } from './orders';
+
+// Products
+export { default as productsService, type Product } from './products';
+
 // API Client
 export { apiClient } from './client';
+
 export type { ApiResponse, ApiError } from './client';
 
 // Mapper utilities

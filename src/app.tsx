@@ -5,6 +5,7 @@ import { routes } from './routes';
 import { createTheme } from './theme';
 import { ThemeModeProvider, useThemeMode } from './theme/ThemeContext';
 import { AuthProvider } from './hooks/useAuth';
+import { Toaster } from 'react-hot-toast';
 import 'simplebar-react/dist/simplebar.min.css';
 
 const AppContent = () => {
@@ -23,6 +24,7 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Toaster position="top-right" />
       {element}
     </ThemeProvider>
   );

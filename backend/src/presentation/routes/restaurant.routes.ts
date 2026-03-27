@@ -10,7 +10,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../../infrastructure/database/prisma.service.js';
-import { COLUMNS } from '../../shared/constants/tables.js';
+import { COLUMNS, ETAT_DEFAUT } from '../../shared/constants/tables.js';
 import { authenticate } from '../middleware/authenticate.middleware.js';
 
 // Validation schemas (inline to avoid import issues)
@@ -110,7 +110,7 @@ export const restaurantRoutes = async (app: FastifyInstance): Promise<void> => {
           user_code: data.user_code || undefined,
           ville_code: data.ville_code || undefined,
           famille_code: data.famille_code || undefined,
-          etat_restaurant: 1,
+          etat_restaurant: ETAT_DEFAUT.ACTIF,
         } as any,
       });
       
@@ -191,7 +191,7 @@ export const restaurantRoutes = async (app: FastifyInstance): Promise<void> => {
     
     const updated = await prisma.restaurants.update({
       where: { code_restaurant: params.codeRestaurant },
-      data: { etat_restaurant: restaurant.etat_restaurant === 1 ? 0 : 1 },
+      data: { etat_restaurant: restaurant.etat_restaurant === ETAT_DEFAUT.ACTIF ? ETAT_DEFAUT.INACTIF : ETAT_DEFAUT.ACTIF },
     });
     
     return reply.send({ success: true, data: updated });

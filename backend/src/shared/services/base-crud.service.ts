@@ -10,16 +10,29 @@ import { COLUMNS } from '../constants/tables.js';
 import { generateSequentialCode } from '../utils/code-generator.util.js';
 
 /**
+ * Interface for Prisma models used in BaseCRUDService
+ */
+interface PrismaModel<T> {
+  name: string;
+  findMany(args?: any): Promise<T[]>;
+  findUnique(args: any): Promise<T | null>;
+  count(args?: any): Promise<number>;
+  create(args: any): Promise<T>;
+  update(args: any): Promise<T>;
+  delete(args: any): Promise<T>;
+}
+
+/**
  * Generic CRUD Service for any Prisma model
  */
 export class BaseCRUDService<T> {
-  private model: any;
+  private model: PrismaModel<T>;
   private codeColumn: string;
   private codePrefix: string;
 
   /**
    * 
-   * @param model - Prisma model name (e.g., 'restaurants', 'clients')
+   * @param model - Prisma model instance (e.g., prisma.users)
    * @param codeColumn - The column name for the code (e.g., 'code_restaurant')
    * @param codePrefix - The prefix for codes (e.g., 'RESTO', 'CLI')
    */
@@ -41,10 +54,10 @@ export class BaseCRUDService<T> {
     where?: any;
     orderBy?: any;
   } = {}) {
-    const { 
-      page = 1, 
-      limit = 10, 
-      search, 
+    const {
+      page = 1,
+      limit = 10,
+      search,
       searchFields = [],
       include,
       where,
@@ -114,12 +127,13 @@ export class BaseCRUDService<T> {
     // Use transaction to ensure atomic code generation
     return await prisma.$transaction(async (tx) => {
       // Get current count within transaction
-      // @ts-ignore - Dynamic model access
-      const count = await tx[this.model.name].count();
+      const modelName = this.model.name.toLowerCase() as keyof typeof tx;
+      // @ts-ignore - Dynamic access with lowercase name mapping for Prisma client
+      const count = await tx[modelName].count();
       const code = generateSequentialCode(this.codePrefix, count);
 
-      // @ts-ignore - Dynamic model access
-      return await tx[this.model.name].create({
+      // @ts-ignore - Dynamic access with lowercase name mapping for Prisma client
+      return await tx[modelName].create({
         data: {
           ...data,
           [this.codeColumn]: code,
@@ -201,9 +215,11 @@ export class BaseCRUDService<T> {
   }
 }
 
-// Factory function to create CRUD services
-export function createCRUDService(model: any, codeColumn: string, codePrefix: string) {
-  return new BaseCRUDService(model, codeColumn, codePrefix);
+/**
+ * Factory function to create CRUD services
+ */
+export function createCRUDService<T>(model: any, codeColumn: string, codePrefix: string) {
+  return new BaseCRUDService<T>(model, codeColumn, codePrefix);
 }
 
 // Pre-configured services for common entities

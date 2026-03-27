@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mer. 25 mars 2026 à 22:15
+-- Généré le : ven. 27 mars 2026 à 12:15
 -- Version du serveur : 9.1.0
 -- Version de PHP : 8.3.14
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `code_categorie` varchar(50) NOT NULL,
   `restaurant_code` varchar(50) NOT NULL,
   `libelle_categorie` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `statut_categorie` tinyint DEFAULT '1',
+  `etat_categorie` tinyint DEFAULT '1',
   `updated_at_categorie` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_categorie`),
   UNIQUE KEY `code_categorie` (`code_categorie`),
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `nom_client` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `telephone_client` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `email_client` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `statut_client` tinyint DEFAULT '1',
+  `etat_client` tinyint DEFAULT '1',
   `created_at_client` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at_client` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_client`),
@@ -94,14 +94,14 @@ CREATE TABLE IF NOT EXISTS `commandes` (
   `restaurant_code` varchar(50) NOT NULL,
   `client_code` varchar(50) NOT NULL,
   `total_commande` decimal(10,2) NOT NULL,
-  `statut_commande` enum('en_attente','payee','en_preparation','livree','annulee') DEFAULT 'en_attente',
+  `etat_commande` enum('en_attente','payee','en_preparation','livree','annulee') DEFAULT 'en_attente',
   `created_at_commande` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at_commande` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_commande`),
   UNIQUE KEY `code_commande` (`code_commande`),
   KEY `restaurant_code` (`restaurant_code`),
   KEY `client_code` (`client_code`),
-  KEY `idx_statut` (`statut_commande`),
+  KEY `idx_etat` (`etat_commande`),
   KEY `idx_created` (`created_at_commande`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `commission_configs` (
   `type_commission` enum('pourcentage','fixe') DEFAULT 'pourcentage',
   `taux_commission` decimal(5,2) DEFAULT '10.00',
   `montant_fixe` decimal(10,2) DEFAULT NULL,
-  `statut_config` tinyint DEFAULT '1',
+  `etat_config` tinyint DEFAULT '1',
   `created_at_config` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_config`),
   UNIQUE KEY `code_config` (`code_config`),
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `commission_configs` (
 -- Déchargement des données de la table `commission_configs`
 --
 
-INSERT INTO `commission_configs` (`id_config`, `code_config`, `restaurant_code`, `type_commission`, `taux_commission`, `montant_fixe`, `statut_config`, `created_at_config`) VALUES
+INSERT INTO `commission_configs` (`id_config`, `code_config`, `restaurant_code`, `type_commission`, `taux_commission`, `montant_fixe`, `etat_config`, `created_at_config`) VALUES
 (1, 'COMM_DEF', NULL, 'pourcentage', 10.00, NULL, 1, '2026-03-22 21:11:31');
 
 -- --------------------------------------------------------
@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS `familles` (
   `id_famille` int NOT NULL AUTO_INCREMENT,
   `code_famille` varchar(50) NOT NULL,
   `libelle_famille` varchar(150) NOT NULL,
-  `statut_famille` tinyint DEFAULT '1',
+  `etat_famille` tinyint DEFAULT '1',
   PRIMARY KEY (`id_famille`),
   UNIQUE KEY `code_famille` (`code_famille`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS `familles` (
 -- Déchargement des données de la table `familles`
 --
 
-INSERT INTO `familles` (`id_famille`, `code_famille`, `libelle_famille`, `statut_famille`) VALUES
+INSERT INTO `familles` (`id_famille`, `code_famille`, `libelle_famille`, `etat_famille`) VALUES
 (1, 'AFRICAIN', 'Cuisine Africaine', 1),
 (2, 'EUROPEEN', 'Cuisine Européenne', 1),
 (3, 'ASIE', 'Cuisine Asiatique', 1);
@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS `gains` (
   `commande_code` varchar(50) NOT NULL,
   `montant_restaurant` decimal(10,2) NOT NULL,
   `montant_delivery` decimal(10,2) NOT NULL,
-  `statut_gain` enum('en_attente','verse','annule') DEFAULT 'en_attente',
+  `etat_gain` enum('en_attente','verse','annule') DEFAULT 'en_attente',
   `created_at_gain` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_gain`),
   UNIQUE KEY `code_gain` (`code_gain`),
@@ -259,14 +259,14 @@ CREATE TABLE IF NOT EXISTS `livraisons` (
   `code_livraison` varchar(50) NOT NULL,
   `commande_code` varchar(50) NOT NULL,
   `livreur_code` varchar(50) NOT NULL,
-  `statut_livraison` enum('en_attente','assignee','en_cours','livree','annulee') DEFAULT 'en_attente',
+  `etat_livraison` enum('en_attente','assignee','en_cours','livree','annulee') DEFAULT 'en_attente',
   `created_at_livraison` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at_livraison` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_livraison`),
   UNIQUE KEY `code_livraison` (`code_livraison`),
   KEY `commande_code` (`commande_code`),
   KEY `livreur_code` (`livreur_code`),
-  KEY `idx_statut_liv` (`statut_livraison`)
+  KEY `idx_etat_liv` (`etat_livraison`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -297,14 +297,28 @@ CREATE TABLE IF NOT EXISTS `livreurs` (
   `id_livreur` int NOT NULL AUTO_INCREMENT,
   `code_livreur` varchar(50) NOT NULL,
   `restaurant_code` varchar(50) DEFAULT NULL,
+  `moyen_transport` varchar(50) DEFAULT NULL,
+  `plaque_vehicule` varchar(50) DEFAULT NULL,
   `nom_livreur` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `prenom_livreur` varchar(150) DEFAULT NULL,
   `telephone_livreur` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `statut_livreurs` tinyint DEFAULT '1',
+  `email_livreur` varchar(150) DEFAULT NULL,
+  `etat_livreurs` tinyint DEFAULT '1',
   `created_at_livreur` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_livreur`),
   UNIQUE KEY `code_livreur` (`code_livreur`),
   KEY `restaurant_code` (`restaurant_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `livreurs`
+--
+
+INSERT INTO `livreurs` (`id_livreur`, `code_livreur`, `restaurant_code`, `moyen_transport`, `plaque_vehicule`, `nom_livreur`, `prenom_livreur`, `telephone_livreur`, `email_livreur`, `etat_livreurs`, `created_at_livreur`) VALUES
+(3, 'LIV001', 'RESTO001', 'moto', '', 'Jean andre', '', '0701234567', NULL, 0, '2026-03-26 23:01:18'),
+(4, 'LIV002', 'RESTO002', NULL, NULL, 'Jean Dupont', NULL, '0701234567', NULL, 1, '2026-03-26 23:01:42'),
+(8, 'LIV_0003', NULL, 'moto', '123', 'patrice', 'Kone', '0566015517', 'lespros13131@gmail.com', 0, '2026-03-26 23:31:20'),
+(9, 'LIV_0004', NULL, 'velo', '672', 'Paul', 'Kone', '0566015517', 'lespros13131@gmail.com', 1, '2026-03-27 00:06:21');
 
 -- --------------------------------------------------------
 
@@ -349,7 +363,20 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `created_at_notification` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_notification`),
   UNIQUE KEY `code_notification` (`code_notification`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `notifications`
+--
+
+INSERT INTO `notifications` (`id_notification`, `code_notification`, `target_code`, `target_type`, `type_notification`, `titre_notification`, `message_notification`, `canal_notification`, `priorite_notification`, `is_read`, `link_notification`, `created_at_notification`) VALUES
+(1, 'NOTIF_002', 'USR_001', 'user', 'commande', 'Nouvelle commande', 'Une nouvelle commande CMD_0002 a été enregistrée', 'in_app', 'moyenne', 0, '/commandes/CMD_0002', '2026-03-25 22:22:37'),
+(2, 'NOTIF_003', 'LIV_001', 'livreur', 'livraison', 'Nouvelle livraison', 'Une livraison vous a été assignée (CMD_0003)', 'push', 'haute', 0, '/livraisons/CMD_0003', '2026-03-25 22:22:37'),
+(3, 'NOTIF_004', 'USR_002', 'user', 'paiement', 'Paiement reçu', 'Votre paiement de 5 000 XOF a été confirmé', 'email', 'moyenne', 1, '/paiements', '2026-03-25 22:22:37'),
+(4, 'NOTIF_005', 'CLI_001', 'client', 'promotion', 'Promo spéciale 🎉', 'Profitez de -20% sur vos commandes aujourd’hui', 'in_app', 'basse', 0, NULL, '2026-03-25 22:22:37'),
+(5, 'NOTIF_006', 'USR_001', 'user', 'system', 'Maintenance prévue', 'Le système sera indisponible ce soir à 23h', 'sms', 'urgente', 0, NULL, '2026-03-25 22:22:37'),
+(6, 'NOTIF_007', 'LIV_002', 'livreur', 'livraison', 'Livraison terminée', 'Vous avez terminé la livraison CMD_0004', 'in_app', 'moyenne', 1, '/livraisons/CMD_0004', '2026-03-25 22:22:37'),
+(7, 'NOTIF_008', 'USR_003', 'user', 'commande', 'Commande annulée', 'La commande CMD_0005 a été annulée', 'in_app', 'haute', 0, '/commandes/CMD_0005', '2026-03-25 22:22:37');
 
 -- --------------------------------------------------------
 
@@ -365,12 +392,12 @@ CREATE TABLE IF NOT EXISTS `paiements` (
   `methode_paiement` enum('espèces','mobile_money','carte_bancaire','paypal','autre') DEFAULT NULL,
   `montant_paiement` decimal(10,2) NOT NULL,
   `reference_externe` varchar(150) DEFAULT NULL,
-  `statut_paiement` enum('en_attente','valide','echoue') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'en_attente',
+  `etat_paiement` enum('en_attente','valide','echoue') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'en_attente',
   `created_at_paiement` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_paiement`),
   UNIQUE KEY `code_paiement` (`code_paiement`),
   KEY `commande_code` (`commande_code`),
-  KEY `idx_statut_paie` (`statut_paiement`)
+  KEY `idx_etat_paie` (`etat_paiement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -386,7 +413,7 @@ CREATE TABLE IF NOT EXISTS `panier` (
   `client_code` varchar(50) NOT NULL,
   `restaurant_code` varchar(50) NOT NULL,
   `total_panier` decimal(10,2) DEFAULT '0.00',
-  `statut_panier` enum('en_cours','valide','annule') DEFAULT 'en_cours',
+  `etat_panier` enum('en_cours','valide','annule') DEFAULT 'en_cours',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_panier`),
   UNIQUE KEY `code_panier` (`code_panier`),
@@ -452,7 +479,7 @@ INSERT INTO `permissions` (`id_permission`, `code_permission`, `description_perm
 (12, 'category.manage', 'Gérer les catégories', '2025-12-20 15:01:15', 1),
 (13, 'product.manage', 'Gérer les produits', '2025-12-20 15:01:15', 1),
 (14, 'order.view', 'Voir les commandes', '2025-12-20 15:01:15', 1),
-(15, 'order.update_status', 'Changer le statut des commandes', '2025-12-20 15:01:15', 1),
+(15, 'order.update_status', 'Changer le etat des commandes', '2025-12-20 15:01:15', 1),
 (16, 'delivery.manage', 'Gérer les livraisons', '2025-12-20 15:01:15', 1),
 (17, 'delivery.track', 'Suivre la livraison', '2025-12-20 15:01:15', 1),
 (18, 'driver.manage', 'Gérer les livreurs', '2025-12-20 15:01:15', 1),
@@ -508,7 +535,7 @@ CREATE TABLE IF NOT EXISTS `promotions` (
   `date_fin` date NOT NULL,
   `utilisations_max` int DEFAULT NULL,
   `utilisations_actuelles` int DEFAULT '0',
-  `statut_promotion` enum('active','desactive','expiree') DEFAULT 'active',
+  `etat_promotion` enum('active','desactive','expiree') DEFAULT 'active',
   PRIMARY KEY (`id_promotion`),
   UNIQUE KEY `code_promotion` (`code_promotion`),
   KEY `restaurant_code` (`restaurant_code`)
@@ -540,7 +567,15 @@ CREATE TABLE IF NOT EXISTS `restaurants` (
   UNIQUE KEY `code_restaurant` (`code_restaurant`),
   KEY `user_code` (`user_code`),
   KEY `fk_restaurants_famille` (`famille_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `restaurants`
+--
+
+INSERT INTO `restaurants` (`id_restaurant`, `code_restaurant`, `user_code`, `libelle_restaurant`, `description_restaurant`, `adresse_restaurant`, `ville_code`, `logo_restaurant`, `etat_restaurant`, `created_at_restaurant`, `updated_at_restaurant`, `latitude_restaurant`, `longitude_restaurant`, `famille_code`) VALUES
+(1, 'RESTO001', 'USER_0002', 'Le Gourmet', 'Cuisine française raffinée', '123 Rue de Paris', 'ABJ', 'logo_gourmet.png', 1, '2026-03-26 22:59:47', '2026-03-26 22:59:47', 6.8140000, -5.2780000, 'EUROPEEN'),
+(2, 'RESTO002', 'USER_0003', 'Pizza Express', 'Pizzas et plats rapides', '45 Avenue Abidjan', 'ABJ', 'logo_pizza.png', 1, '2026-03-26 22:59:47', '2026-03-26 22:59:47', 6.8123456, -5.2765432, 'AFRICAIN');
 
 -- --------------------------------------------------------
 
@@ -573,7 +608,7 @@ CREATE TABLE IF NOT EXISTS `restaurant_horaires` (
   `jour` enum('lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche') NOT NULL,
   `heure_ouverture` time NOT NULL,
   `heure_fermeture` time NOT NULL,
-  `statut_horaire` tinyint DEFAULT '1',
+  `etat_horaire` tinyint DEFAULT '1',
   PRIMARY KEY (`id_horaire`),
   UNIQUE KEY `restaurant_code` (`restaurant_code`,`jour`),
   KEY `restaurant_code_2` (`restaurant_code`)
@@ -738,17 +773,25 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id_user`),
   UNIQUE KEY `code_user` (`code_user`),
   UNIQUE KEY `email` (`email_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `users`
 --
 
 INSERT INTO `users` (`id_user`, `code_user`, `nom_user`, `email_user`, `telephone_user`, `mot_de_passe`, `etat_users`, `created_at_user`, `updated_at_user`, `token_user`) VALUES
-(1, 'USR002', 'Admin Test', 'admin@test.com', '0700000001', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 1, '2026-03-25 10:33:32', '2026-03-25 10:33:32', NULL),
+(1, 'USR002', 'Kone patrice', 'admin@test.com', '+2250566015517', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 1, '2026-03-25 10:33:32', '2026-03-25 10:33:32', NULL),
 (2, 'USER_0002', 'Test User', 'test@test.com', '0112264534', '$2b$12$ABeGSLsygp8Qy1JVmHQb5.AOQzPVOldwae7EWE2Gge5JBQtcz/qyS', 1, '2026-03-25 11:59:40', '2026-03-25 11:59:40', NULL),
-(3, 'USER_0003', 'Test User 2', 'test2@test.com', '0712345566', '$2b$12$T3Cme30/Igb81MLzCULS7u/vxSQrDMdFNvVgfrvMfN0SrTlmBHMH2', 1, '2026-03-25 12:01:07', '2026-03-25 12:01:07', NULL),
-(4, 'USER_0004', 'Test User 3', 'test3@test.com', '189988769', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 1, '2026-03-25 12:09:17', '2026-03-25 12:09:17', NULL);
+(3, 'USER_0003', 'Test User 2', 'test2@test.com', '0712345566', '$2b$12$T3Cme30/Igb81MLzCULS7u/vxSQrDMdFNvVgfrvMfN0SrTlmBHMH2', 0, '2026-03-25 12:01:07', '2026-03-25 12:01:07', NULL),
+(4, 'USER_0004', 'Test User 3', 'test3@test.com', '189988769', '$2b$12$61x5uT7hSMF2pWrTut1Nk.qxdXAzvOOWx1962OamSYFY/4fls7jae', 0, '2026-03-25 12:09:17', '2026-03-25 12:09:17', NULL),
+(6, 'USER_0005', 'Test User', 'testuser@test.com', '+2250500000000', '$2b$12$EwNfgOQTYHkF74s5EyLXaeT9wZdi6vTIb1/N/E2SoXlEgmA7vpgxq', 1, '2026-03-26 12:06:58', '2026-03-26 12:06:58', NULL),
+(7, 'USER_0006', 'Nouvel Utilisateur', 'newuser@test.com', '+2250600000000', '$2b$12$QnU9QkAkJvIQFNh/X3NvSu8JImHTiFt2raZvKDwcoSdw9mKw/97/W', 1, '2026-03-26 12:07:22', '2026-03-26 12:07:22', NULL),
+(8, 'USER_0007', 'Test User 5', 'testuser5@test.com', NULL, '$2b$12$.3Fv.AMGd4u//jkpfbRSaeeQ1PSOmXgQq1R9VuK44h6QVmjrkTLym', 1, '2026-03-26 12:07:53', '2026-03-26 12:07:53', NULL),
+(9, 'USER_0008', 'LesPros Informatique', 'test3@tesst.com', '+2250566015517', '$2b$12$st5hQvbdkqhn/dZPkjCMgO3oABEWv5FGBEnQnunJQGZIXAyTrqtdm', 1, '2026-03-26 17:17:11', '2026-03-26 17:17:11', NULL),
+(10, 'USER_0009', 'LesPros Informatique', 'testA3@test.com', '+2250566015517', '$2b$12$JJm/Bz4XZFWhbWI5LynBCu951hrD4ybkgMG..VoKm3DZekZZBxJ62', 1, '2026-03-26 17:17:48', '2026-03-26 17:17:48', NULL),
+(11, 'USER_0010', 'LesPros Informatique', 'testA3@tezst.com', '+2250566015517', '$2b$12$ocE4sEPrqTGGDkQcZ8cJ2Otbs1yzBU2wUeDb2dmCK7/dvyAkszaBq', 1, '2026-03-26 17:18:08', '2026-03-26 17:18:08', NULL),
+(12, 'USER_0011', 'Kone patrice', 'lespros13131@gmail.com', '+2250566015517', '$2b$12$Hx2Tw6j8rUNkcR1oiFtVq.Np3WxHNXlFHf1GKWKIVOEAUdvmCvtXi', 1, '2026-03-26 17:18:20', '2026-03-26 17:18:20', NULL),
+(13, 'USER_0012', 'Kone patrice', 'lol@gmail.com', '+2250566015517', '$2b$12$/sY.tc6TrTYN4CASe4EGpefnIeZgIoKJvtSGmWz8aAlAlgJg98Q9u', 1, '2026-03-26 22:46:11', '2026-03-26 22:46:11', NULL);
 
 -- --------------------------------------------------------
 
@@ -790,7 +833,7 @@ CREATE TABLE IF NOT EXISTS `villes` (
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL,
   `frais_livraison_defaut` decimal(10,2) DEFAULT '500.00',
-  `statut_ville` tinyint DEFAULT '1',
+  `etat_ville` tinyint DEFAULT '1',
   PRIMARY KEY (`id_ville`),
   UNIQUE KEY `code_ville` (`code_ville`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -799,7 +842,7 @@ CREATE TABLE IF NOT EXISTS `villes` (
 -- Déchargement des données de la table `villes`
 --
 
-INSERT INTO `villes` (`id_ville`, `code_ville`, `nom_ville`, `pays`, `latitude`, `longitude`, `frais_livraison_defaut`, `statut_ville`) VALUES
+INSERT INTO `villes` (`id_ville`, `code_ville`, `nom_ville`, `pays`, `latitude`, `longitude`, `frais_livraison_defaut`, `etat_ville`) VALUES
 (1, 'ABIDJAN', 'Abidjan', 'Côte d\'Ivoire', 5.3600000, -4.0000000, 500.00, 1),
 (2, 'YAMOUSSOUKRO', 'Yamoussoukro', 'Côte d\'Ivoire', 6.8500000, -5.2700000, 1000.00, 1),
 (3, 'BOUAKE', 'Bouaké', 'Côte d\'Ivoire', 7.6900000, -5.0300000, 800.00, 1),
@@ -819,7 +862,7 @@ CREATE TABLE IF NOT EXISTS `wallet_livreurs` (
   `livreur_code` varchar(50) NOT NULL,
   `solde` decimal(10,2) DEFAULT '0.00',
   `total_retire` decimal(10,2) DEFAULT '0.00',
-  `statut_wallet` enum('actif','bloqué','inactif') DEFAULT 'actif',
+  `etat_wallet` enum('actif','bloqué','inactif') DEFAULT 'actif',
   `created_at_wallet` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_wallet`),
   UNIQUE KEY `code_wallet` (`code_wallet`),
@@ -841,7 +884,7 @@ CREATE TABLE IF NOT EXISTS `wallet_transactions` (
   `montant` decimal(10,2) NOT NULL,
   `reference` varchar(150) DEFAULT NULL,
   `description` text,
-  `statut_transaction` enum('en_attente','valide','echoue') DEFAULT 'valide',
+  `etat_transaction` enum('en_attente','valide','echoue') DEFAULT 'valide',
   `created_at_transaction` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_transaction`),
   UNIQUE KEY `code_transaction` (`code_transaction`),
@@ -862,7 +905,7 @@ CREATE TABLE IF NOT EXISTS `zones_livraison` (
   `nom_zone` varchar(150) NOT NULL,
   `frais_livraison` decimal(10,2) NOT NULL,
   `delai_minutes` int DEFAULT '30',
-  `statut_zone` tinyint DEFAULT '1',
+  `etat_zone` tinyint DEFAULT '1',
   PRIMARY KEY (`id_zone`),
   UNIQUE KEY `code_zone` (`code_zone`),
   KEY `ville_code` (`ville_code`)
@@ -872,7 +915,7 @@ CREATE TABLE IF NOT EXISTS `zones_livraison` (
 -- Déchargement des données de la table `zones_livraison`
 --
 
-INSERT INTO `zones_livraison` (`id_zone`, `code_zone`, `ville_code`, `nom_zone`, `frais_livraison`, `delai_minutes`, `statut_zone`) VALUES
+INSERT INTO `zones_livraison` (`id_zone`, `code_zone`, `ville_code`, `nom_zone`, `frais_livraison`, `delai_minutes`, `etat_zone`) VALUES
 (1, 'ABJ_COCODY', 'ABIDJAN', 'Cocody', 300.00, 20, 1),
 (2, 'ABJ_MARCORY', 'ABIDJAN', 'Marcory', 300.00, 20, 1),
 (3, 'ABJ_TREICHVILLE', 'ABIDJAN', 'Treichville', 400.00, 25, 1),

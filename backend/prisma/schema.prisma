@@ -191,7 +191,11 @@ model livreurs {
   code_livreur       String           @unique(map: "code_livreur") @db.VarChar(50)
   restaurant_code    String?          @db.VarChar(50)
   nom_livreur        String           @db.VarChar(150)
+  prenom_livreur     String?          @db.VarChar(150)
   telephone_livreur  String?          @db.VarChar(30)
+  email_livreur      String?          @db.VarChar(150)
+  moyen_transport    String?          @db.VarChar(50)
+  plaque_vehicule    String?          @db.VarChar(50)
   statut_livreurs    Int?             @default(1) @db.TinyInt
   created_at_livreur DateTime?        @default(now()) @db.DateTime(0)
   livraisons         livraisons[]

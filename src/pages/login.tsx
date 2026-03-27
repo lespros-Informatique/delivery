@@ -44,7 +44,7 @@ const LoginPage = () => {
       <Helmet>
         <title>Connexion | Woli Delivery</title>
       </Helmet>
-      
+
       <Box
         sx={{
           minHeight: '100vh',

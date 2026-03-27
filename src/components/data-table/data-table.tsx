@@ -1,10 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Box, Card, Chip, IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
-import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 
 export interface ColumnConfig {
   field: string;
@@ -32,7 +29,11 @@ interface DataTableProps {
   columns: ColumnConfig[];
   pageSize?: number;
   pageSizeOptions?: number[];
+  rowCount?: number; // Total rows for server-side pagination
+  page?: number;     // Current page (0-indexed)
   onRowClick?: (row: Record<string, unknown>) => void;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   onActionClick?: (row: Record<string, unknown>, action: string) => void;
   checkboxSelection?: boolean;
   loading?: boolean;
@@ -45,7 +46,7 @@ interface DataTableProps {
   actions?: ActionOption[];
 }
 
-// Couleurs de statut par défaut
+// Default status colors
 const defaultStatusMapping: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'> = {
   actif: 'success',
   inactif: 'error',
@@ -65,7 +66,11 @@ export const DataTable = ({
   columns,
   pageSize = 10,
   pageSizeOptions = [5, 10, 25, 50],
+  rowCount,
+  page,
   onRowClick,
+  onPageChange,
+  onPageSizeChange,
   onActionClick,
   checkboxSelection = false,
   loading = false,
@@ -77,7 +82,7 @@ export const DataTable = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
 
-  // Menu d'actions
+  // Actions menu logic
   const handleActionClick = (event: React.MouseEvent<HTMLElement>, row: Record<string, unknown>) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
@@ -96,15 +101,15 @@ export const DataTable = ({
     handleMenuClose();
   };
 
-  // Colonnes d'actions
+  // Actions column definition
   const actionColumn: GridColDef | null = actions ? {
     field: 'actions',
     headerName: 'ACTIONS',
     width: 100,
     sortable: false,
     filterable: false,
-    align: 'center' as const,
-    headerAlign: 'center' as const,
+    align: 'center',
+    headerAlign: 'center',
     renderCell: (params: GridRenderCellParams) => (
       <IconButton
         size="small"
@@ -115,7 +120,7 @@ export const DataTable = ({
     ),
   } : null;
 
-  // Préparer les colonnes pour le DataGrid
+  // Prepare grid columns
   const gridColumns: GridColDef[] = columns.map((col) => {
     const gridCol: GridColDef = {
       field: col.field,
@@ -129,17 +134,15 @@ export const DataTable = ({
       filterable: col.filterable ?? true,
     };
 
-    // Ajouter le renderCell personnalisé
     if (col.renderCell) {
       gridCol.renderCell = col.renderCell;
     }
 
-    // Ajouter le valueFormatter
     if (col.valueFormatter) {
       gridCol.valueFormatter = (value: unknown) => col.valueFormatter!(value);
     }
 
-    // Gestion automatique des statuts
+    // Auto status handling
     if (statusColumn && col.field === statusColumn.field) {
       gridCol.renderCell = (params: GridRenderCellParams) => {
         const statusValue = params.value as string;
@@ -159,14 +162,13 @@ export const DataTable = ({
     return gridCol;
   });
 
-  // Ajouter le numéro de ligne et les actions
   const columnsWithIndex: GridColDef[] = [
     {
       field: 'numero',
       headerName: 'N°',
       width: 60,
-      align: 'center' as const,
-      headerAlign: 'center' as const,
+      align: 'center',
+      headerAlign: 'center',
       sortable: false,
       filterable: false,
     },
@@ -177,7 +179,7 @@ export const DataTable = ({
     columnsWithIndex.push(actionColumn);
   }
 
-  // Préparer les lignes avec numéro séquentiel
+  // Row identification
   const rowsWithIndex = rows.map((row, index) => ({
     ...row,
     id: row.id || row.id_commande || row.id_user || row.id_client || index,
@@ -190,10 +192,15 @@ export const DataTable = ({
         <DataGrid
           rows={rowsWithIndex}
           columns={columnsWithIndex}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize },
-            },
+          paginationMode={rowCount !== undefined ? 'server' : 'client'}
+          rowCount={rowCount}
+          paginationModel={{
+            page: page ?? 0, // DataGrid uses 0-indexed page
+            pageSize: pageSize ?? 10
+          }}
+          onPaginationModelChange={(model) => {
+            if (onPageChange && model.page !== page) onPageChange(model.page);
+            if (onPageSizeChange && model.pageSize !== pageSize) onPageSizeChange(model.pageSize);
           }}
           pageSizeOptions={pageSizeOptions}
           checkboxSelection={checkboxSelection}
@@ -229,7 +236,7 @@ export const DataTable = ({
         />
       </Box>
 
-      {/* Menu d'actions */}
+      {/* Actions menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

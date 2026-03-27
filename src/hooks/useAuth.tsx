@@ -1,32 +1,48 @@
 /**
- * Auth Hook - Authentication State Management
+ * useAuth – Authentication State Management
  * ==========================================
- * React hook for managing authentication state with Provider
- * 
- * Security Features:
- * - HTTP-only cookies for token storage (XSS protection)
- * - Automatic token refresh before expiration
- * - Secure logout with cookie clearing
+ * Context + Hook for managing authentication state throughout the app.
+ *
+ * Security:
+ * - HTTP-only cookies store the JWT (XSS-safe).
+ * - localStorage stores ONLY the user object for UI display.
+ * - Token refresh is scheduled automatically every 12 minutes.
  */
 
-import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  createContext,
+  useContext,
+  ReactNode,
+} from 'react';
 import { authService, AuthUser } from '../lib/api';
 
-// Type definitions
-interface UseAuthReturn {
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  register: (email: string, password: string, nomUser: string, telephoneUser?: string) => Promise<{ success: boolean; message?: string }>;
-  logout: () => Promise<void>;
   error: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (
+    email: string,
+    password: string,
+    nomUser: string,
+    telephoneUser?: string
+  ) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
 }
 
-// Create context
-const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
+// ─── Context ─────────────────────────────────────────────────────────────────
 
-// Auth Provider component
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// ─── Provider ────────────────────────────────────────────────────────────────
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -35,17 +51,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // Initialize auth state on mount
+  // Ref pour le timer de refresh (évite la dépendance circulaire useCallback)
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Token Refresh silencieux ─────────────────────────────────────────────
+
+  const scheduleTokenRefresh = useCallback(() => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+
+    // Refresh 3 min avant expiration (token valide 15 min → timer à 12 min)
+    refreshTimerRef.current = setTimeout(async () => {
+      try {
+        const response = await authService.refresh();
+        if (response.success && response.data) {
+          authService.setCurrentUser(response.data.user);
+          setUser(response.data.user);
+          scheduleTokenRefresh(); // Planifier le prochain refresh
+        }
+      } catch {
+        // Si le refresh échoue, on déconnecte proprement
+        handleLogout();
+      }
+    }, 12 * 60 * 1000);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Initialisation ──────────────────────────────────────────────────────
+
   useEffect(() => {
     const initAuth = async () => {
-      // Check if we have a stored user (from previous session)
       const storedUser = authService.getCurrentUser();
-      
       if (storedUser) {
         setUser(storedUser);
-        // Start token refresh timer
         scheduleTokenRefresh();
       }
       setIsLoading(false);
@@ -53,148 +92,117 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initAuth();
 
-    // Cleanup timer on unmount
     return () => {
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Schedule token refresh (every 12 minutes for 15min tokens)
-  const scheduleTokenRefresh = useCallback(() => {
-    // Clear any existing timer
-    if (refreshTimer) {
-      clearTimeout(refreshTimer);
+  // ─── Logout interne (partagé par logout() et scheduleTokenRefresh) ────────
+
+  const handleLogout = useCallback(async () => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
     }
 
-    // Refresh token 3 minutes before expiration (15min token)
-    const timer = setTimeout(async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // Ignorer les erreurs réseau lors du logout
+    }
+
+    authService.clearCurrentUser();
+    setUser(null);
+    window.location.href = '/delivery/login';
+  }, []);
+
+  // ─── Login ────────────────────────────────────────────────────────────────
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        const response = await authService.refresh();
+        const response = await authService.login({ email, password });
+
         if (response.success && response.data) {
           authService.setCurrentUser(response.data.user);
           setUser(response.data.user);
-          scheduleTokenRefresh(); // Schedule next refresh
+          scheduleTokenRefresh();
+          return { success: true };
         }
-      } catch (err) {
-        console.error('Token refresh failed:', err);
-        // If refresh fails, user will need to login again
-        logout();
+
+        const msg = response.message ?? 'Échec de la connexion';
+        setError(msg);
+        return { success: false, message: msg };
+      } catch (err: unknown) {
+        const msg =
+          (err as { response?: { data?: { message?: string } } }).response?.data?.message ??
+          'Erreur lors de la connexion';
+        setError(msg);
+        return { success: false, message: msg };
+      } finally {
+        setIsLoading(false);
       }
-    }, 12 * 60 * 1000); // 12 minutes
+    },
+    [scheduleTokenRefresh]
+  );
 
-    setRefreshTimer(timer);
-  }, [refreshTimer]);
+  // ─── Register ────────────────────────────────────────────────────────────
 
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await authService.login({ email, password });
-      
-      if (response.success && response.data) {
-        // Store user for UI state (not for auth - cookies handle that)
-        authService.setCurrentUser(response.data.user);
-        setUser(response.data.user);
-        // Schedule token refresh
-        scheduleTokenRefresh();
-        return { success: true };
-      } else {
-        setError(response.message || 'Échec de la connexion');
-        return { success: false, message: response.message };
+  const register = useCallback(
+    async (email: string, password: string, nomUser: string, telephoneUser?: string) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await authService.register({ email, password, nomUser, telephoneUser });
+
+        if (response.success && response.data) {
+          authService.setCurrentUser(response.data.user);
+          setUser(response.data.user);
+          scheduleTokenRefresh();
+          return { success: true };
+        }
+
+        const msg = response.message ?? "Échec de l'inscription";
+        setError(msg);
+        return { success: false, message: msg };
+      } catch (err: unknown) {
+        const msg =
+          (err as { response?: { data?: { message?: string } } }).response?.data?.message ??
+          "Erreur lors de l'inscription";
+        setError(msg);
+        return { success: false, message: msg };
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Erreur lors de la connexion';
-      setError(errorMessage);
-      return { success: false, message: errorMessage };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [scheduleTokenRefresh]);
+    },
+    [scheduleTokenRefresh]
+  );
 
-  const register = useCallback(async (
-    email: string, 
-    password: string, 
-    nomUser: string, 
-    telephoneUser?: string
-  ) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await authService.register({ 
-        email, 
-        password, 
-        nomUser, 
-        telephoneUser 
-      });
-      
-      if (response.success && response.data) {
-        // Store user for UI state
-        authService.setCurrentUser(response.data.user);
-        setUser(response.data.user);
-        // Schedule token refresh
-        scheduleTokenRefresh();
-        return { success: true };
-      } else {
-        setError(response.message || "Échec de l'inscription");
-        return { success: false, message: response.message };
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Erreur lors de l'inscription";
-      setError(errorMessage);
-      return { success: false, message: errorMessage };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [scheduleTokenRefresh]);
+  // ─── Context Value ────────────────────────────────────────────────────────
 
-  const logout = useCallback(async () => {
-    // Clear timer
-    if (refreshTimer) {
-      clearTimeout(refreshTimer);
-      setRefreshTimer(null);
-    }
-
-    // Call logout endpoint to clear cookies
-    try {
-      await authService.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-
-    // Clear local state
-    authService.clearCurrentUser();
-    setUser(null);
-    
-    // Redirect to login (use relative path with base)
-    window.location.href = '/delivery/login';
-  }, [refreshTimer]);
-
-  const value: UseAuthReturn = {
+  const value: AuthContextValue = {
     user,
     isAuthenticated: !!user,
     isLoading,
+    error,
     login,
     register,
-    logout,
-    error,
+    logout: handleLogout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook to use auth context
-export const useAuth = (): UseAuthReturn => {
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error("useAuth doit être utilisé à l'intérieur d'un <AuthProvider>");
   }
   return context;
 };

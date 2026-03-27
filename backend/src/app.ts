@@ -45,7 +45,32 @@ export const app = Fastify({
 const registerPlugins = async (): Promise<void> => {
   // Security headers
   await app.register(helmet, {
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        scriptSrc: ["'none'"],
+        styleSrc: ["'none'"],
+        imgSrc: ["'none'"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'none'"],
+        frameSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    crossOriginResourcePolicy: { policy: 'same-origin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    xContentTypeOptions: true,
+    xDnsPrefetchControl: { allow: false },
+    xDownloadOptions: true,
+    xFrameOptions: { action: 'deny' },
+    xPermittedCrossDomainPolicies: { permittedPolicies: 'none' },
+    xXssProtection: true,
   });
 
   // Rate limiting - configurable via environment variables
@@ -62,10 +87,10 @@ const registerPlugins = async (): Promise<void> => {
 
   // CORS
   // In development: allow all origins. In production: use specific origins from env
-  const corsOrigins = process.env.CORS_ORIGIN 
+  const corsOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
     : (process.env.NODE_ENV === 'production' ? [] : true);
-  
+
   await app.register(cors, {
     origin: corsOrigins,
     credentials: true,
