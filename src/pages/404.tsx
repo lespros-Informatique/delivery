@@ -1,60 +1,109 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Box, Button, Container, Typography } from '@mui/material';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { ArrowBack as ArrowBackIcon, Home as HomeIcon, Search as SearchIcon } from '@mui/icons-material';
 
 const Page = () => (
   <>
     <Helmet>
       <title>
-        Error: Not Found | Carpatin Free
+        Page non trouvée | Woli Delivery
       </title>
     </Helmet>
     <Box
       sx={{
-        backgroundColor: 'background.paper',
-        flexGrow: 1
+        backgroundColor: 'background.default',
+        flexGrow: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '80vh'
       }}
     >
-      <Container
-        maxWidth="md"
-        sx={{
-          px: 5,
-          py: 14,
-          alignItems: 'center',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
+      <Container maxWidth="sm" sx={{ textAlign: 'center', py: 8 }}>
         <Box
           sx={{
+            mb: 4,
             '& img': {
-              maxWidth: '100%'
+              width: '100%',
+              maxWidth: 400,
+              height: 'auto'
             }
           }}
         >
-          <img src="/assets/illustration-not-found.svg" alt="Not found" />
+          <img src="/assets/illustration-not-found.svg" alt="Page non trouvée" />
         </Box>
+        
         <Typography
-          align="center"
-          sx={{ my: 2 }}
-          variant="h3"
+          variant="h4"
+          sx={{ 
+            fontWeight: 700,
+            color: 'text.primary',
+            mb: 2
+          }}
         >
-          Nothing here!
+          Oups ! Page introuvable
         </Typography>
+        
         <Typography
-          align="center"
+          color="text.secondary"
+          variant="body1"
+          sx={{ mb: 1 }}
+        >
+          La page que vous recherchez n'existe pas ou a été déplacée.
+        </Typography>
+        
+        <Typography
           color="text.secondary"
           variant="body2"
+          sx={{ mb: 4 }}
         >
-          The page requested does not exist.
+          Vérifiez l'URL ou retournez à l'accueil.
         </Typography>
-        <Button
-          to="/"
-          component={RouterLink}
-          sx={{ mt: 2 }}
+        
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={2}
+          justifyContent="center"
         >
-          Take me home
-        </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => window.history.back()}
+            sx={{ 
+              px: 3,
+              py: 1.2,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Retour
+          </Button>
+          
+          <Button
+            variant="contained"
+            startIcon={<HomeIcon />}
+            component={RouterLink}
+            to="/"
+            sx={{ 
+              px: 3,
+              py: 1.2,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 4px 14px rgba(41, 112, 255, 0.3)'
+            }}
+          >
+            Retour à l'accueil
+          </Button>
+        </Stack>
+        
+        <Box sx={{ mt: 6, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="body2" color="text.secondary">
+            Erreur 404 • Woli Delivery
+          </Typography>
+        </Box>
       </Container>
     </Box>
   </>

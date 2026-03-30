@@ -7,7 +7,7 @@ interface FooterLink {
 
 const items: FooterLink[] = [
   {
-    label: 'About Us',
+    label: 'A Propos de Nous',
     href: 'https://devias.io/about-us'
   },
   {
@@ -42,9 +42,9 @@ export const Footer = () => (
       }}
     >
       <Typography color="text.secondary" variant="caption">
-        © 2023 Devias, distributed by
-        <Link ml={0.5} href="https://themewagon.com/">
-          ThemeWagon
+        © 2026 Delivery, distributed by
+        <Link ml={0.5} href="#">
+          Woli
         </Link>
       </Typography>
       <Box sx={{ flexGrow: 1 }} />

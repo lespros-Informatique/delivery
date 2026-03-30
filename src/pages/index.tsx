@@ -1,32 +1,12 @@
 import { Helmet } from 'react-helmet-async';
-import { subDays, subHours, subMinutes } from 'date-fns';
-import ShoppingBagIcon from '@heroicons/react/24/solid/ShoppingBagIcon';
-import ShoppingCartIcon from '@heroicons/react/24/solid/ShoppingCartIcon';
-import CurrencyDollarIcon from '@heroicons/react/24/solid/CurrencyDollarIcon';
-import {
-  Avatar,
-  Box,
-  Container,
-  Stack,
-  SvgIcon,
-  Typography,
-  Unstable_Grid2 as Grid
-} from '@mui/material';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import { Avatar, Box, Container, Stack, SvgIcon, Typography, Grid } from '@mui/material';
 import { OverviewKpi } from 'src/sections/overview/overview-kpi';
 import { OverviewLatestCustomers } from 'src/sections/overview/overview-latest-customers';
 import { OverviewSummary } from 'src/sections/overview/overview-summary';
-
-const now = new Date();
-
-interface Customer {
-  id: string;
-  amountSpent: number;
-  avatar: string;
-  createdAt: number;
-  isOnboarded: boolean;
-  name: string;
-  orders: number;
-}
+import { mockCustomers } from 'src/data/mock/customers';
 
 const Page = () => (
   <>
@@ -54,8 +34,7 @@ const Page = () => (
               spacing={3}
             >
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <OverviewSummary
                   icon={
@@ -77,8 +56,7 @@ const Page = () => (
                 />
               </Grid>
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <OverviewSummary
                   icon={
@@ -100,8 +78,7 @@ const Page = () => (
                 />
               </Grid>
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <OverviewSummary
                   icon={
@@ -114,7 +91,7 @@ const Page = () => (
                       }}
                     >
                       <SvgIcon>
-                        <CurrencyDollarIcon />
+                        <AttachMoneyIcon />
                       </SvgIcon>
                     </Avatar>
                   }
@@ -122,7 +99,7 @@ const Page = () => (
                   value='1942'
                 />
               </Grid>
-              <Grid xs={12}>
+              <Grid size={12}>
                 <OverviewKpi
                   chartSeries={[
                     {
@@ -154,55 +131,9 @@ const Page = () => (
                   ]}
                 />
               </Grid>
-              <Grid xs={12}>
+              <Grid size={12}>
                 <OverviewLatestCustomers
-                  customers={[
-                    {
-                      id: 'a105ac46530704806ca58ede',
-                      amountSpent: 684.45,
-                      avatar: '/assets/avatars/avatar-fabiano-jorioz.jpg',
-                      createdAt: subDays(subHours(subMinutes(now, 7), 3), 2).getTime(),
-                      isOnboarded: true,
-                      name: 'Fabiano Jorioz',
-                      orders: 2
-                    },
-                    {
-                      id: '126ed71fc9cbfabc601c56c5',
-                      amountSpent: 0,
-                      avatar: '/assets/avatars/avatar-meggie-heinonen.jpg',
-                      createdAt: subDays(subHours(subMinutes(now, 7), 3), 2).getTime(),
-                      isOnboarded: false,
-                      name: 'Meggie Heinonen',
-                      orders: 0
-                    },
-                    {
-                      id: 'aafaeb0545357922aff32a7b',
-                      amountSpent: 32.25,
-                      avatar: '/assets/avatars/avatar-sean-picott.jpg',
-                      createdAt: subDays(subHours(subMinutes(now, 11), 2), 3).getTime(),
-                      isOnboarded: true,
-                      name: 'Sean Picott',
-                      orders: 1
-                    },
-                    {
-                      id: '16b526d9e0fefe53f7eba66b',
-                      amountSpent: 0,
-                      avatar: '/assets/avatars/avatar-bell-covely.jpg',
-                      createdAt: subDays(subHours(subMinutes(now, 18), 9), 5).getTime(),
-                      isOnboarded: true,
-                      name: 'Bell Covely',
-                      orders: 0
-                    },
-                    {
-                      id: 'fe035356923629912236d9a2',
-                      amountSpent: 125.70,
-                      avatar: '/assets/avatars/avatar-giraud-lamlin.jpg',
-                      createdAt: subDays(subHours(subMinutes(now, 19), 18), 7).getTime(),
-                      isOnboarded: false,
-                      name: 'Giraud Lamlin',
-                      orders: 1
-                    }
-                  ]}
+                  customers={mockCustomers}
                 />
               </Grid>
             </Grid>

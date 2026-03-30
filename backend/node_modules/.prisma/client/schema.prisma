@@ -1,0 +1,627 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model analytics {
+  id_analytics    Int                      @id @default(autoincrement())
+  date_analytics  DateTime                 @db.Date
+  restaurant_code String?                  @db.VarChar(50)
+  type_analytics  analytics_type_analytics
+  valeur          Int
+  montant         Decimal?                 @default(0.00) @db.Decimal(10, 2)
+
+  @@unique([date_analytics, restaurant_code, type_analytics], map: "date_analytics")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model categories {
+  id_categorie         Int         @id @default(autoincrement())
+  code_categorie       String      @unique(map: "code_categorie") @db.VarChar(50)
+  restaurant_code      String      @db.VarChar(50)
+  libelle_categorie    String      @db.VarChar(150)
+  statut_categorie     Int?        @default(1) @db.TinyInt
+  updated_at_categorie DateTime?   @default(now()) @db.DateTime(0)
+  restaurants          restaurants @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_categories_restaurant")
+  produits             produits[]
+
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model clients {
+  id_client         Int             @id @default(autoincrement())
+  code_client       String          @unique(map: "code_client") @db.VarChar(50)
+  restaurant_code   String          @db.VarChar(50)
+  nom_client        String          @db.VarChar(150)
+  telephone_client  String?         @db.VarChar(30)
+  email_client      String?         @db.VarChar(150)
+  statut_client     Int?            @default(1) @db.TinyInt
+  created_at_client DateTime?       @default(now()) @db.DateTime(0)
+  updated_at_client DateTime?       @default(now()) @db.DateTime(0)
+  restaurants       restaurants     @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_clients_restaurant")
+  commandes         commandes[]
+  notifications     notifications[]
+  panier            panier[]
+
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model commandes {
+  id_commande         Int                        @id @default(autoincrement())
+  code_commande       String                     @unique(map: "code_commande") @db.VarChar(50)
+  restaurant_code     String                     @db.VarChar(50)
+  client_code         String                     @db.VarChar(50)
+  total_commande      Decimal                    @db.Decimal(10, 2)
+  statut_commande     commandes_statut_commande? @default(en_attente)
+  created_at_commande DateTime?                  @default(now()) @db.DateTime(0)
+  updated_at_commande DateTime?                  @default(now()) @db.DateTime(0)
+  clients             clients                    @relation(fields: [client_code], references: [code_client], onDelete: Cascade, map: "fk_commandes_client")
+  restaurants         restaurants                @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_commandes_restaurant")
+  commissions         commissions[]
+  evaluations         evaluations[]
+  gains               gains[]
+  ligne_commandes     ligne_commandes[]
+  livraisons          livraisons[]
+  paiements           paiements[]
+
+  @@index([client_code], map: "client_code")
+  @@index([created_at_commande], map: "idx_created")
+  @@index([statut_commande], map: "idx_statut")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model commission_configs {
+  id_config         Int                                 @id @default(autoincrement())
+  code_config       String                              @unique(map: "code_config") @db.VarChar(50)
+  restaurant_code   String?                             @unique(map: "restaurant_code") @db.VarChar(50)
+  type_commission   commission_configs_type_commission? @default(pourcentage)
+  taux_commission   Decimal?                            @default(10.00) @db.Decimal(5, 2)
+  montant_fixe      Decimal?                            @db.Decimal(10, 2)
+  statut_config     Int?                                @default(1) @db.TinyInt
+  created_at_config DateTime?                           @default(now()) @db.DateTime(0)
+  restaurants       restaurants?                        @relation(fields: [restaurant_code], references: [code_restaurant], map: "fk_commission_configs_restaurant")
+}
+
+model commissions {
+  id_commission         Int                         @id @default(autoincrement())
+  code_commission       String                      @unique(map: "code_commission") @db.VarChar(50)
+  commande_code         String                      @db.VarChar(50)
+  type_commission       commissions_type_commission
+  valeur_commission     Decimal                     @db.Decimal(10, 2)
+  montant_commission    Decimal                     @db.Decimal(10, 2)
+  created_at_commission DateTime?                   @default(now()) @db.DateTime(0)
+  etat_commission       Int                         @default(1)
+  commandes             commandes                   @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_commissions_commande")
+
+  @@index([commande_code], map: "commande_code")
+}
+
+model evaluations {
+  id_evaluation         Int         @id @default(autoincrement())
+  code_evaluation       String      @unique(map: "code_evaluation") @db.VarChar(50)
+  commande_code         String      @db.VarChar(50)
+  client_code           String      @db.VarChar(50)
+  restaurant_code       String      @db.VarChar(50)
+  note                  Int         @db.TinyInt
+  commentaire           String?     @db.Text
+  note_livraison        Int?        @db.TinyInt
+  commentaire_livraison String?     @db.Text
+  created_at_evaluation DateTime?   @default(now()) @db.DateTime(0)
+  commandes             commandes   @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_evaluations_commande")
+  restaurants           restaurants @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_evaluations_restaurant")
+
+  @@index([commande_code], map: "commande_code")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model familles {
+  id_famille      Int           @id @default(autoincrement())
+  code_famille    String        @unique(map: "code_famille") @db.VarChar(50)
+  libelle_famille String        @db.VarChar(150)
+  statut_famille  Int?          @default(1) @db.TinyInt
+  restaurants     restaurants[]
+}
+
+model gains {
+  id_gain            Int                @id @default(autoincrement())
+  code_gain          String             @unique(map: "code_gain") @db.VarChar(50)
+  restaurant_code    String             @db.VarChar(50)
+  commande_code      String             @db.VarChar(50)
+  montant_restaurant Decimal            @db.Decimal(10, 2)
+  montant_delivery   Decimal            @db.Decimal(10, 2)
+  statut_gain        gains_statut_gain? @default(en_attente)
+  created_at_gain    DateTime?          @default(now()) @db.DateTime(0)
+  commandes          commandes          @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_gains_commande")
+  restaurants        restaurants        @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_gains_restaurant")
+
+  @@index([commande_code], map: "commande_code")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model ligne_commandes {
+  id_commande_ligne            Int       @id @default(autoincrement())
+  code_commande_ligne          String    @unique(map: "code_commande_ligne") @db.VarChar(50)
+  commande_code                String    @db.VarChar(50)
+  produit_code                 String    @db.VarChar(50)
+  quantite_ligne_commande      Int
+  prix_unitaire_ligne_commande Decimal   @db.Decimal(10, 2)
+  total_ligne_commande         Decimal   @db.Decimal(10, 2)
+  etat_ligne_commande          Int       @default(1)
+  commandes                    commandes @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_lignes_commande")
+  produits                     produits  @relation(fields: [produit_code], references: [code_produit], onDelete: Cascade, map: "fk_lignes_produit")
+
+  @@index([commande_code], map: "commande_code")
+  @@index([produit_code], map: "produit_code")
+}
+
+model livraison_positions {
+  id_position         Int        @id @default(autoincrement())
+  livraison_code      String     @db.VarChar(50)
+  latitude            Decimal    @db.Decimal(10, 7)
+  longitude           Decimal    @db.Decimal(10, 7)
+  created_at_position DateTime?  @default(now()) @db.DateTime(0)
+  livraisons          livraisons @relation(fields: [livraison_code], references: [code_livraison], onDelete: Cascade, map: "fk_positions_livraison")
+
+  @@index([livraison_code], map: "livraison_code")
+}
+
+model livraisons {
+  id_livraison         Int                          @id @default(autoincrement())
+  code_livraison       String                       @unique(map: "code_livraison") @db.VarChar(50)
+  commande_code        String                       @db.VarChar(50)
+  livreur_code         String                       @db.VarChar(50)
+  statut_livraison     livraisons_statut_livraison? @default(en_attente)
+  created_at_livraison DateTime?                    @default(now()) @db.DateTime(0)
+  updated_at_livraison DateTime?                    @default(now()) @db.DateTime(0)
+  livraison_positions  livraison_positions[]
+  commandes            commandes                    @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_livraisons_commande")
+  livreurs             livreurs                     @relation(fields: [livreur_code], references: [code_livreur], onDelete: Cascade, map: "fk_livraisons_livreur")
+
+  @@index([commande_code], map: "commande_code")
+  @@index([statut_livraison], map: "idx_statut_liv")
+  @@index([livreur_code], map: "livreur_code")
+}
+
+model livreurs {
+  id_livreur         Int              @id @default(autoincrement())
+  code_livreur       String           @unique(map: "code_livreur") @db.VarChar(50)
+  restaurant_code    String?          @db.VarChar(50)
+  nom_livreur        String           @db.VarChar(150)
+  telephone_livreur  String?          @db.VarChar(30)
+  statut_livreurs    Int?             @default(1) @db.TinyInt
+  created_at_livreur DateTime?        @default(now()) @db.DateTime(0)
+  livraisons         livraisons[]
+  restaurants        restaurants?     @relation(fields: [restaurant_code], references: [code_restaurant], map: "fk_livreurs_restaurant")
+  notifications      notifications[]
+  wallet_livreurs    wallet_livreurs?
+
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model logs_activite {
+  id_log          Int       @id @default(autoincrement())
+  user_code       String?   @db.VarChar(50)
+  action          String    @db.VarChar(100)
+  table_concernee String?   @db.VarChar(100)
+  reference       String?   @db.VarChar(150)
+  details         String?   @db.Text
+  adresse_ip      String?   @db.VarChar(45)
+  created_at_log  DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([created_at_log], map: "created_at_log")
+  @@index([user_code], map: "user_code")
+}
+
+model notifications {
+  id_notification         Int                             @id @default(autoincrement())
+  code_notification       String                          @unique(map: "code_notification") @db.VarChar(50)
+  user_code               String?                         @db.VarChar(50)
+  livreur_code            String?                         @db.VarChar(50)
+  client_code             String?                         @db.VarChar(50)
+  type_notification       notifications_type_notification
+  titre                   String                          @db.VarChar(200)
+  message                 String                          @db.Text
+  lu                      Int?                            @default(0) @db.TinyInt
+  created_at_notification DateTime?                       @default(now()) @db.DateTime(0)
+  clients                 clients?                        @relation(fields: [client_code], references: [code_client], map: "fk_notifications_client")
+  livreurs                livreurs?                       @relation(fields: [livreur_code], references: [code_livreur], map: "fk_notifications_livreur")
+  users                   users?                          @relation(fields: [user_code], references: [code_user], map: "fk_notifications_user")
+
+  @@index([client_code], map: "client_code")
+  @@index([livreur_code], map: "livreur_code")
+  @@index([user_code], map: "user_code")
+}
+
+model paiements {
+  id_paiement         Int                         @id @default(autoincrement())
+  code_paiement       String                      @unique(map: "code_paiement") @db.VarChar(50)
+  commande_code       String                      @db.VarChar(50)
+  methode_paiement    paiements_methode_paiement?
+  montant_paiement    Decimal                     @db.Decimal(10, 2)
+  reference_externe   String?                     @db.VarChar(150)
+  statut_paiement     paiements_statut_paiement?  @default(en_attente)
+  created_at_paiement DateTime?                   @default(now()) @db.DateTime(0)
+  commandes           commandes                   @relation(fields: [commande_code], references: [code_commande], onDelete: Cascade, map: "fk_paiements_commande")
+
+  @@index([commande_code], map: "commande_code")
+  @@index([statut_paiement], map: "idx_statut_paie")
+}
+
+model panier {
+  id_panier       Int                   @id @default(autoincrement())
+  code_panier     String                @unique(map: "code_panier") @db.VarChar(50)
+  client_code     String                @db.VarChar(50)
+  restaurant_code String                @db.VarChar(50)
+  total_panier    Decimal?              @default(0.00) @db.Decimal(10, 2)
+  statut_panier   panier_statut_panier? @default(en_cours)
+  created_at      DateTime?             @default(now()) @db.DateTime(0)
+  clients         clients               @relation(fields: [client_code], references: [code_client], onDelete: Cascade, map: "fk_panier_client")
+  restaurants     restaurants           @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_panier_restaurant")
+  panier_lignes   panier_lignes[]
+
+  @@index([client_code], map: "client_code")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model panier_lignes {
+  id_ligne_panier             Int      @id @default(autoincrement())
+  code_ligne_panier           String   @unique(map: "code_ligne") @db.VarChar(50)
+  panier_code                 String   @db.VarChar(50)
+  produit_code                String   @db.VarChar(50)
+  quantite_ligne_panier       Int      @default(1)
+  prix_unitaire_ligne__panier Decimal  @db.Decimal(10, 2)
+  total_ligne_panier          Decimal  @db.Decimal(10, 2)
+  etat_ligne_panier           Int      @default(1) @db.TinyInt
+  panier                      panier   @relation(fields: [panier_code], references: [code_panier], onDelete: Cascade, map: "fk_lignes_panier")
+  produits                    produits @relation(fields: [produit_code], references: [code_produit], onDelete: Cascade, map: "fk_lignes_produit_panier")
+
+  @@index([panier_code], map: "panier_code")
+  @@index([produit_code], map: "produit_code")
+}
+
+model permissions {
+  id_permission          Int                @id @default(autoincrement())
+  code_permission        String             @unique(map: "code_permission") @db.VarChar(100)
+  description_permission String?            @db.Text
+  created_at_permission  DateTime?          @default(now()) @db.DateTime(0)
+  etat_permission        Int                @default(1) @db.TinyInt
+  role_permissions       role_permissions[]
+}
+
+model produits {
+  id_produit          Int               @id @default(autoincrement())
+  code_produit        String            @unique(map: "code_produit") @db.VarChar(50)
+  restaurant_code     String            @db.VarChar(50)
+  categorie_code      String?           @db.VarChar(50)
+  libelle_produit     String            @db.VarChar(150)
+  description_produit String?           @db.Text
+  prix_produit        Decimal           @db.Decimal(10, 2)
+  image_produit       String?           @db.VarChar(255)
+  disponible_produit  Int?              @default(1) @db.TinyInt
+  etat_produit        Int?              @default(1) @db.TinyInt
+  created_at_produit  DateTime?         @default(now()) @db.DateTime(0)
+  updated_at_produit  DateTime?         @default(now()) @db.DateTime(0)
+  ligne_commandes     ligne_commandes[]
+  panier_lignes       panier_lignes[]
+  categories          categories?       @relation(fields: [categorie_code], references: [code_categorie], map: "fk_produits_categorie")
+  restaurants         restaurants       @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_produits_restaurant")
+
+  @@index([categorie_code], map: "categorie_code")
+  @@index([disponible_produit], map: "idx_disponible")
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model promotions {
+  id_promotion           Int                          @id @default(autoincrement())
+  code_promotion         String                       @unique(map: "code_promotion") @db.VarChar(50)
+  restaurant_code        String?                      @db.VarChar(50)
+  type_promotion         promotions_type_promotion
+  valeur                 Decimal                      @db.Decimal(10, 2)
+  code_reduction         String?                      @db.VarChar(20)
+  date_debut             DateTime                     @db.Date
+  date_fin               DateTime                     @db.Date
+  utilisations_max       Int?
+  utilisations_actuelles Int?                         @default(0)
+  statut_promotion       promotions_statut_promotion? @default(active)
+  restaurants            restaurants?                 @relation(fields: [restaurant_code], references: [code_restaurant], map: "fk_promotions_restaurant")
+
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model restaurant_fermetures {
+  id_fermeture         Int         @id @default(autoincrement())
+  restaurant_code      String      @db.VarChar(50)
+  date_debut           DateTime    @db.Date
+  date_fin             DateTime    @db.Date
+  motif                String?     @db.VarChar(255)
+  created_at_fermeture DateTime?   @default(now()) @db.DateTime(0)
+  restaurants          restaurants @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_fermetures_restaurant")
+
+  @@index([restaurant_code], map: "restaurant_code")
+}
+
+model restaurant_horaires {
+  id_horaire      Int                      @id @default(autoincrement())
+  restaurant_code String                   @db.VarChar(50)
+  jour            restaurant_horaires_jour
+  heure_ouverture DateTime                 @db.Time(0)
+  heure_fermeture DateTime                 @db.Time(0)
+  statut_horaire  Int?                     @default(1) @db.TinyInt
+  restaurants     restaurants              @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_horaires_restaurant")
+
+  @@unique([restaurant_code, jour], map: "restaurant_code")
+  @@index([restaurant_code], map: "restaurant_code_2")
+}
+
+model restaurants {
+  id_restaurant          Int                     @id @default(autoincrement())
+  code_restaurant        String                  @unique(map: "code_restaurant") @db.VarChar(50)
+  user_code              String                  @db.VarChar(50)
+  libelle_restaurant     String                  @db.VarChar(150)
+  description_restaurant String?                 @db.Text
+  adresse_restaurant     String?                 @db.VarChar(255)
+  ville_code             String?                 @db.VarChar(100)
+  logo_restaurant        String?                 @db.VarChar(255)
+  etat_restaurant        Int?                    @default(1) @db.TinyInt
+  created_at_restaurant  DateTime?               @default(now()) @db.DateTime(0)
+  updated_at_restaurant  DateTime?               @default(now()) @db.DateTime(0)
+  latitude_restaurant    Decimal?                @db.Decimal(10, 7)
+  longitude_restaurant   Decimal?                @db.Decimal(10, 7)
+  famille_code           String?                 @db.VarChar(50)
+  categories             categories[]
+  clients                clients[]
+  commandes              commandes[]
+  commission_configs     commission_configs?
+  evaluations            evaluations[]
+  gains                  gains[]
+  livreurs               livreurs[]
+  panier                 panier[]
+  produits               produits[]
+  promotions             promotions[]
+  restaurant_fermetures  restaurant_fermetures[]
+  restaurant_horaires    restaurant_horaires[]
+  familles               familles?               @relation(fields: [famille_code], references: [code_famille], map: "fk_restaurants_famille")
+  users                  users                   @relation(fields: [user_code], references: [code_user], onDelete: Cascade, map: "fk_restaurants_user")
+  settings_restaurants   settings_restaurants[]
+
+  @@index([famille_code], map: "fk_restaurants_famille")
+  @@index([user_code], map: "user_code")
+}
+
+model role_permissions {
+  id_role_permission   Int         @id @default(autoincrement())
+  role_code            String      @db.VarChar(50)
+  permission_code      String      @db.VarChar(100)
+  etat_role_permission Int         @default(1)
+  permissions          permissions @relation(fields: [permission_code], references: [code_permission], onDelete: Cascade, map: "fk_role_permissions_permission")
+  roles                roles       @relation(fields: [role_code], references: [code_role], onDelete: Cascade, map: "fk_role_permissions_role")
+
+  @@unique([role_code, permission_code], map: "role_code")
+  @@index([permission_code], map: "permission_code")
+  @@index([role_code], map: "role_code_2")
+}
+
+model roles {
+  id_role          Int                @id @default(autoincrement())
+  code_role        String             @unique(map: "code_role") @db.VarChar(50)
+  libelle_role     String             @db.VarChar(100)
+  description_role String?            @db.Text
+  etat_role        Int?               @default(1) @db.TinyInt
+  created_at_role  DateTime?          @default(now()) @db.DateTime(0)
+  role_permissions role_permissions[]
+  user_roles       user_roles[]
+}
+
+model settings_platform {
+  id_setting             Int       @id @default(autoincrement())
+  code_setting           String    @unique(map: "code_setting") @db.VarChar(100)
+  valeur                 String?   @db.VarChar(255)
+  created_at_setting     DateTime? @default(now()) @db.DateTime(0)
+  etat_settings_platform Int       @default(1)
+}
+
+model settings_restaurants {
+  id_setting                     Int         @id @default(autoincrement())
+  restaurant_code                String      @db.VarChar(50)
+  code_setting                   String      @db.VarChar(100)
+  valeur_settings_restaurant     String      @default("") @db.VarChar(100)
+  created_at_settings_restaurant DateTime?   @default(now()) @db.DateTime(0)
+  updated_at_settings_restaurant DateTime?   @default(now()) @db.DateTime(0)
+  restaurants                    restaurants @relation(fields: [restaurant_code], references: [code_restaurant], onDelete: Cascade, map: "fk_settings_restaurant")
+
+  @@unique([restaurant_code, code_setting], map: "restaurant_code")
+  @@index([restaurant_code], map: "restaurant_code_2")
+}
+
+model user_roles {
+  id_user_role   Int    @id @default(autoincrement())
+  user_code      String @db.VarChar(50)
+  role_code      String @db.VarChar(50)
+  etat_user_role Int    @default(1)
+  roles          roles  @relation(fields: [role_code], references: [code_role], onDelete: Cascade, map: "fk_user_roles_role")
+  users          users  @relation(fields: [user_code], references: [code_user], onDelete: Cascade, map: "fk_user_roles_user")
+
+  @@unique([user_code, role_code], map: "user_code")
+  @@index([role_code], map: "role_code")
+  @@index([user_code], map: "user_code_2")
+}
+
+model users {
+  id_user         Int             @id @default(autoincrement())
+  code_user       String          @unique(map: "code_user") @db.VarChar(50)
+  nom_user        String          @db.VarChar(100)
+  email_user      String          @unique(map: "email") @db.VarChar(150)
+  telephone_user  String?         @db.VarChar(30)
+  mot_de_passe    String          @db.VarChar(255)
+  etat_users      Int?            @default(1) @db.TinyInt
+  created_at_user DateTime?       @default(now()) @db.DateTime(0)
+  updated_at_user DateTime?       @default(now()) @db.DateTime(0)
+  token_user      String?         @db.VarChar(100)
+  notifications   notifications[]
+  restaurants     restaurants[]
+  user_roles      user_roles[]
+}
+
+model villes {
+  id_ville               Int               @id @default(autoincrement())
+  code_ville             String            @unique(map: "code_ville") @db.VarChar(50)
+  nom_ville              String            @db.VarChar(150)
+  pays                   String?           @default("Côte d'Ivoire") @db.VarChar(100)
+  latitude               Decimal?          @db.Decimal(10, 7)
+  longitude              Decimal?          @db.Decimal(10, 7)
+  frais_livraison_defaut Decimal?          @default(500.00) @db.Decimal(10, 2)
+  statut_ville           Int?              @default(1) @db.TinyInt
+  zones_livraison        zones_livraison[]
+}
+
+model wallet_livreurs {
+  id_wallet           Int                            @id @default(autoincrement())
+  code_wallet         String                         @unique(map: "code_wallet") @db.VarChar(50)
+  livreur_code        String                         @unique(map: "livreur_code") @db.VarChar(50)
+  solde               Decimal?                       @default(0.00) @db.Decimal(10, 2)
+  total_retire        Decimal?                       @default(0.00) @db.Decimal(10, 2)
+  statut_wallet       wallet_livreurs_statut_wallet? @default(actif)
+  created_at_wallet   DateTime?                      @default(now()) @db.DateTime(0)
+  livreurs            livreurs                       @relation(fields: [livreur_code], references: [code_livreur], onDelete: Cascade, map: "fk_wallet_livreur")
+  wallet_transactions wallet_transactions[]
+}
+
+model wallet_transactions {
+  id_transaction         Int                                     @id @default(autoincrement())
+  code_transaction       String                                  @unique(map: "code_transaction") @db.VarChar(50)
+  wallet_code            String                                  @db.VarChar(50)
+  type_transaction       wallet_transactions_type_transaction
+  montant                Decimal                                 @db.Decimal(10, 2)
+  reference              String?                                 @db.VarChar(150)
+  description            String?                                 @db.Text
+  statut_transaction     wallet_transactions_statut_transaction? @default(valide)
+  created_at_transaction DateTime?                               @default(now()) @db.DateTime(0)
+  wallet_livreurs        wallet_livreurs                         @relation(fields: [wallet_code], references: [code_wallet], onDelete: Cascade, map: "fk_transactions_wallet")
+
+  @@index([wallet_code], map: "wallet_code")
+}
+
+model zones_livraison {
+  id_zone         Int     @id @default(autoincrement())
+  code_zone       String  @unique(map: "code_zone") @db.VarChar(50)
+  ville_code      String  @db.VarChar(50)
+  nom_zone        String  @db.VarChar(150)
+  frais_livraison Decimal @db.Decimal(10, 2)
+  delai_minutes   Int?    @default(30)
+  statut_zone     Int?    @default(1) @db.TinyInt
+  villes          villes  @relation(fields: [ville_code], references: [code_ville], onDelete: Cascade, map: "fk_zones_ville")
+
+  @@index([ville_code], map: "ville_code")
+}
+
+enum restaurant_horaires_jour {
+  lundi
+  mardi
+  mercredi
+  jeudi
+  vendredi
+  samedi
+  dimanche
+}
+
+enum analytics_type_analytics {
+  commandes
+  revenus
+  livraisons
+  clients
+}
+
+enum commission_configs_type_commission {
+  pourcentage
+  fixe
+}
+
+enum commissions_type_commission {
+  pourcentage
+  fixe
+}
+
+enum paiements_methode_paiement {
+  esp_ces        @map("espèces")
+  mobile_money
+  carte_bancaire
+  paypal
+  autre
+}
+
+enum promotions_type_promotion {
+  pourcentage
+  montant_fixe
+  Livraison_gratuite
+}
+
+enum wallet_transactions_type_transaction {
+  commission
+  retrait
+  bonus
+  penalite
+}
+
+enum livraisons_statut_livraison {
+  en_attente
+  assignee
+  en_cours
+  livree
+  annulee
+}
+
+enum commandes_statut_commande {
+  en_attente
+  payee
+  en_preparation
+  livree
+  annulee
+}
+
+enum notifications_type_notification {
+  commande
+  livraison
+  paiement
+  promotion
+  system
+}
+
+enum panier_statut_panier {
+  en_cours
+  valide
+  annule
+}
+
+enum wallet_livreurs_statut_wallet {
+  actif
+  bloqu_  @map("bloqué")
+  inactif
+}
+
+enum gains_statut_gain {
+  en_attente
+  verse
+  annule
+}
+
+enum paiements_statut_paiement {
+  en_attente
+  valide
+  echoue
+}
+
+enum wallet_transactions_statut_transaction {
+  en_attente
+  valide
+  echoue
+}
+
+enum promotions_statut_promotion {
+  active
+  desactive
+  expiree
+}

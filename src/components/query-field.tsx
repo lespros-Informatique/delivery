@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, ChangeEvent, FocusEvent, KeyboardEvent } from 'react';
-import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import SearchIcon from '@mui/icons-material/Search';
 import { InputBase, SvgIcon } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -75,7 +75,7 @@ export const QueryField = (props: QueryFieldProps) => {
         fontSize="small"
         sx={{ mr: 1 }}
       >
-        <MagnifyingGlassIcon />
+        <SearchIcon />
       </SvgIcon>
       <InputBase
         disabled={disabled}

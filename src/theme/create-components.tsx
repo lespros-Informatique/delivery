@@ -1,4 +1,4 @@
-import XCircleIcon from '@heroicons/react/24/solid/XCircleIcon';
+import { Cancel } from '@mui/icons-material';
 import {
   createTheme,
   filledInputClasses,
@@ -116,7 +116,7 @@ export const createComponents = ({ palette }: ComponentsConfig) => {
       defaultProps: {
         deleteIcon: (
           <SvgIcon>
-            <XCircleIcon />
+            <Cancel />
           </SvgIcon>
         )
       },
@@ -372,13 +372,13 @@ export const createComponents = ({ palette }: ComponentsConfig) => {
         root: {
           backgroundColor: palette.neutral[50],
           borderBottomWidth: 1,
-          borderBottomStyle: 'solid',
+          borderBottomStyle: 'solid' as const,
           borderBottomColor: palette.divider,
-          [`.${tableCellClasses.root}`]: {
+          [`& .${tableCellClasses.root}`]: {
             color: palette.text.secondary,
             fontSize: 11,
             fontWeight: 600,
-            textTransform: 'uppercase'
+            textTransform: 'uppercase' as const
           }
         }
       }
@@ -399,7 +399,7 @@ export const createComponents = ({ palette }: ComponentsConfig) => {
     },
     MuiTextField: {
       defaultProps: {
-        variant: 'filled'
+        variant: 'filled' as const
       }
     }
   };

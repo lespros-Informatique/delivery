@@ -1,27 +1,14 @@
 import { Helmet } from 'react-helmet-async';
-import CogIcon from '@heroicons/react/24/solid/CogIcon';
-import DocumentTextIcon from '@heroicons/react/24/solid/DocumentTextIcon';
-import HomeIcon from '@heroicons/react/24/solid/HomeIcon';
-import ShoppingCartIcon from '@heroicons/react/24/solid/ShoppingCartIcon';
-import StarIcon from '@heroicons/react/24/solid/StarIcon';
-import {
-  Box,
-  Card,
-  Container,
-  Link,
-  Stack,
-  SvgIcon,
-  Typography,
-  Unstable_Grid2 as Grid
-} from '@mui/material';
+import { Settings, FileText, Home, ShoppingCart, Star } from 'lucide-react';
+import { Box, Card, Container, Link, Stack, SvgIcon, Typography, Grid } from '@mui/material';
 import { ReactElement } from 'react';
 
 const icons: ReactElement[] = [
-  <CogIcon />,
-  <DocumentTextIcon />,
-  <HomeIcon />,
-  <ShoppingCartIcon />,
-  <StarIcon />
+  <Settings />,
+  <FileText />,
+  <Home />,
+  <ShoppingCart />,
+  <Star />
 ];
 
 const Page = () => (
@@ -50,8 +37,7 @@ const Page = () => (
               spacing={3}
             >
               <Grid
-                xs={12}
-                md={4}
+                size={{ xs: 12, md: 4 }}
               >
                 <Stack spacing={1}>
                   <Typography variant="h6">
@@ -78,8 +64,7 @@ const Page = () => (
                 </Stack>
               </Grid>
               <Grid
-                xs={12}
-                md={8}
+                size={{ xs: 12, md: 8 }}
               >
                 <Card>
                   <Stack

@@ -91,3 +91,22 @@ export const error = withAlphas({
   dark: '#B42318',
   contrastText: '#FFFFFF'
 });
+
+// Couleur pour les étoiles de notation
+export const star = withAlphas({
+  light: '#FFE0B2',
+  main: '#FFA726',
+  dark: '#E65100',
+  contrastText: '#FFFFFF'
+});
+
+// Blanc
+export const white = '#FFFFFF';
+
+// Couleurs pour les graphiques (vert et bleu)
+export const chart = {
+  green: '#4CAF50',
+  blue: '#2196F3',
+  grey: '#9CA3AF',
+  darkGrey: '#374151'
+};
