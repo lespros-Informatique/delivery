@@ -36,12 +36,13 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import PeopleIcon from '@mui/icons-material/People';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
+import TuneIcon from '@mui/icons-material/Tune';
 import { useThemeMode } from 'src/theme/ThemeContext';
 import { Logo } from 'src/components/logo';
 import { useAuth } from 'src/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { navGroups } from './config';
+import { SettingsModal } from 'src/components/modal/settings-modal';
 
 const TOP_NAV_HEIGHT = 64;
 
@@ -64,6 +65,7 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAnchor, setSearchAnchor] = useState<null | HTMLElement>(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { isDark, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -362,6 +364,20 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
             </IconButton>
           </Tooltip>
 
+          {/* UI Settings */}
+          <Tooltip title="Paramètres d'affichage">
+            <IconButton 
+              color="inherit" 
+              onClick={() => setSettingsOpen(true)}
+              sx={{ 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+              }}
+              disableRipple
+            >
+              <TuneIcon />
+            </IconButton>
+          </Tooltip>
+
           {/* Notifications */}
           <IconButton 
             color="inherit" 
@@ -629,6 +645,8 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
           </Menu>
         </Stack>
       </Stack>
+      
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </Box>
   );
 };

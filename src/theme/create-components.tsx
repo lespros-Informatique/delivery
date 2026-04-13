@@ -30,9 +30,14 @@ interface ComponentsConfig {
     error: { main: string };
     divider: string;
   };
+  density?: 'compact' | 'comfortable';
 }
 
-export const createComponents = ({ palette }: ComponentsConfig) => {
+export const createComponents = ({ palette, density = 'comfortable' }: ComponentsConfig) => {
+  const isCompact = density === 'compact';
+  const spacingY = isCompact ? 0.5 : 1;
+  const padding = isCompact ? 1 : 2;
+  
   return {
     MuiAvatar: {
       styleOverrides: {
@@ -46,18 +51,29 @@ export const createComponents = ({ palette }: ComponentsConfig) => {
       }
     },
     MuiButton: {
+      defaultProps: {
+        disableElevation: true
+      },
       styleOverrides: {
         root: {
-          fontWeight: 600
+          fontWeight: 600,
+          paddingY: isCompact ? '4px' : '8px',
+          paddingX: isCompact ? '12px' : '16px'
         },
         sizeLarge: {
-          fontSize: 15
+          fontSize: 15,
+          paddingY: isCompact ? '6px' : '10px',
+          paddingX: isCompact ? '18px' : '22px'
         },
         sizeMedium: {
-          fontSize: 14
+          fontSize: 14,
+          paddingY: isCompact ? '4px' : '8px',
+          paddingX: isCompact ? '12px' : '16px'
         },
         sizeSmall: {
-          fontSize: 13
+          fontSize: 13,
+          paddingY: isCompact ? '2px' : '6px',
+          paddingX: isCompact ? '10px' : '14px'
         },
         contained: {
           '&:focus': {
@@ -79,20 +95,20 @@ export const createComponents = ({ palette }: ComponentsConfig) => {
     MuiCardActions: {
       styleOverrides: {
         root: {
-          paddingBottom: 16,
-          paddingLeft: 24,
-          paddingRight: 24,
-          paddingTop: 16
+          paddingBottom: isCompact ? 8 : 16,
+          paddingLeft: isCompact ? 16 : 24,
+          paddingRight: isCompact ? 16 : 24,
+          paddingTop: isCompact ? 8 : 16
         }
       }
     },
     MuiCardContent: {
       styleOverrides: {
         root: {
-          paddingBottom: 20,
-          paddingLeft: 24,
-          paddingRight: 24,
-          paddingTop: 20
+          paddingBottom: isCompact ? 12 : 20,
+          paddingLeft: isCompact ? 16 : 24,
+          paddingRight: isCompact ? 16 : 24,
+          paddingTop: isCompact ? 12 : 20
         }
       }
     },

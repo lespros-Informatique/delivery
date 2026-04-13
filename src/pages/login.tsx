@@ -75,7 +75,7 @@ const LoginPage = () => {
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
           {/* Logo */}
           <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Box 
+            {/* <Box 
               sx={{ 
                 display: 'inline-flex', 
                 alignItems: 'center', 
@@ -93,8 +93,8 @@ const LoginPage = () => {
               }}
             >
               <DeliveryDiningIcon sx={{ fontSize: 48, color: 'white' }} />
-            </Box>
-            <Typography 
+            </Box> */}
+            {/* <Typography 
               variant="h3" 
               fontWeight={700} 
               sx={{ 
@@ -106,10 +106,10 @@ const LoginPage = () => {
               }}
             >
               Woli Delivery
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+            </Typography> */}
+            {/* <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
               Gestion de votre plateforme de livraison
-            </Typography>
+            </Typography> */}
           </Box>
 
           <Card

@@ -61,7 +61,7 @@ export class BaseCRUDService<T> {
       searchFields = [],
       include,
       where,
-      orderBy = { created_at: 'desc' }
+      orderBy
     } = options;
 
     // Build search condition

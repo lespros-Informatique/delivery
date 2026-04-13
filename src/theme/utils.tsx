@@ -1,4 +1,4 @@
-import { blue, green, indigo, purple } from './colors';
+import { blue, green, indigo, purple, teal, orange, red, pink, cyan } from './colors';
 import { ColorWithAlphas } from './colors';
 
 export const getPrimary = (preset: string): ColorWithAlphas => {
@@ -11,8 +11,18 @@ export const getPrimary = (preset: string): ColorWithAlphas => {
       return indigo;
     case 'purple':
       return purple;
+    case 'teal':
+      return teal;
+    case 'orange':
+      return orange;
+    case 'red':
+      return red;
+    case 'pink':
+      return pink;
+    case 'cyan':
+      return cyan;
     default:
-      console.error('Invalid color preset, accepted values: "blue", "green", "indigo" or "purple".');
-      return indigo;
+      console.error('Invalid color preset');
+      return blue;
   }
 };

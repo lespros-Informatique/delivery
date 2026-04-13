@@ -64,6 +64,41 @@ export const purple = withAlphas({
   contrastText: '#FFFFFF'
 });
 
+export const teal = withAlphas({
+  light: '#D5F5F3',
+  main: '#009688',
+  dark: '#00796B',
+  contrastText: '#FFFFFF'
+});
+
+export const orange = withAlphas({
+  light: '#FFF3E0',
+  main: '#ED6C02',
+  dark: '#E65100',
+  contrastText: '#FFFFFF'
+});
+
+export const red = withAlphas({
+  light: '#FFEBEE',
+  main: '#D32F2F',
+  dark: '#B71C1C',
+  contrastText: '#FFFFFF'
+});
+
+export const pink = withAlphas({
+  light: '#FCE4EC',
+  main: '#E91E63',
+  dark: '#C2185B',
+  contrastText: '#FFFFFF'
+});
+
+export const cyan = withAlphas({
+  light: '#E0F7FA',
+  main: '#00ACC1',
+  dark: '#00838F',
+  contrastText: '#FFFFFF'
+});
+
 export const success = withAlphas({
   light: '#3FC79A',
   main: '#10B981',

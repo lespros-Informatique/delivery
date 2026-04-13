@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     authService.clearCurrentUser();
     setUser(null);
-    window.location.href = '/delivery/login';
+    window.location.href = '/login';
   }, []);
 
   // ─── Login ────────────────────────────────────────────────────────────────
